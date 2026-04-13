@@ -82,15 +82,17 @@ body {
   align-items: start;
 }
 
-/* On smaller screens stack vertically — report card always above PDF */
+/* On smaller screens: switch to flex column so order is explicit and reliable */
 @media (max-width: 900px) {
   .split-layout {
-    grid-template-columns: 1fr;
+    display: flex;
+    flex-direction: column;
   }
 
-  /* Score/report must be seen first; PDF is secondary reference */
-  .split-left  { order: 2; }
+  /* Report card first — score must be visible without scrolling */
   .split-right { order: 1; }
+  /* PDF viewer second — reference material, collapsed by default */
+  .split-left  { order: 2; }
 }
 
 /* ----- Card ----- */

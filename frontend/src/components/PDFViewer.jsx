@@ -12,9 +12,13 @@ import './PDFViewer.css'
  * PDFs instantly — both iframes stay mounted so there's no reload flash.
  */
 export default function PDFViewer({ file, jdFile }) {
-  const [activeTab, setActiveTab]   = useState('resume')
-  // Always expanded by default; user can collapse manually via the ▲ button
-  const [collapsed, setCollapsed]   = useState(false)
+  const [activeTab, setActiveTab] = useState('resume')
+  // Collapsed by default on mobile so the score is fully visible first.
+  // window.matchMedia is available in all modern browsers and reads the
+  // actual CSS breakpoint, not raw device pixels.
+  const [collapsed, setCollapsed] = useState(
+    () => window.matchMedia('(max-width: 900px)').matches
+  )
 
   // Create blob URLs once; revoke on unmount to free memory
   const resumeUrl = useMemo(() => URL.createObjectURL(file), [file])

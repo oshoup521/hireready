@@ -124,21 +124,26 @@
   background: color-mix(in srgb, var(--accent) 8%, transparent);
 }
 
-/* ── Mobile: static height, report card already above via CSS order ── */
+/* ── Mobile ── */
 @media (max-width: 900px) {
+  /* Kill sticky completely — it's the cause of the "floating PDF" bug.
+     Use !important as a hard override so no specificity can re-enable it. */
   .pdf-viewer {
-    position: static;
-    height: 55vh;
+    position: static !important;
+    top: auto !important;
+    height: 50vh;
+    /* Remove the CSS height transition so collapse feels instant */
+    transition: none;
   }
 
-  /* When collapsed on mobile, just show the header bar */
+  /* Collapsed: only the header bar is visible */
   .pdf-viewer--collapsed {
-    height: auto;
+    height: auto !important;
   }
 }
 
 @media (max-width: 480px) {
   .pdf-viewer {
-    height: 50vh;
+    height: 45vh;
   }
 }
