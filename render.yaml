@@ -1,0 +1,15 @@
+services:
+  - type: web
+    name: hireready-api
+    runtime: python
+    region: oregon
+    plan: free
+    rootDir: backend
+    buildCommand: pip install -r requirements.txt && python -m spacy download en_core_web_sm
+    startCommand: uvicorn main:app --host 0.0.0.0 --port $PORT
+    healthCheckPath: /health
+    envVars:
+      # Set this to your Vercel frontend URL once deployed, e.g.:
+      # https://hireready.vercel.app
+      - key: ALLOWED_ORIGIN
+        sync: false

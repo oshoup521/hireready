@@ -5,7 +5,7 @@ Render Build Command (set this in the Render dashboard):
     pip install -r requirements.txt && python -m spacy download en_core_web_sm
 
 Render Start Command:
-    uvicorn main:app --host 0.0.0.0 --port 10000
+    uvicorn main:app --host 0.0.0.0 --port $PORT
 
 Routes:
     GET  /health   — health check for Render
