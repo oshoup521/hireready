@@ -1,0 +1,204 @@
+/* ── Upload Section card ── */
+.upload-section {
+  margin-bottom: 1.5rem;
+  padding: 1.1rem 1.4rem;        /* tighter than default .card */
+}
+
+/* ── Top bar: mode toggle + hint ── */
+.upload-header {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+  margin-bottom: 0.9rem;
+  flex-wrap: wrap;
+}
+
+.mode-hint {
+  font-size: 0.78rem;
+  color: var(--text-secondary);
+  flex: 1;
+}
+
+/* ── Mode toggle pills ── */
+.mode-toggle {
+  display: flex;
+  background: var(--bg-primary);
+  border: 1px solid var(--border);
+  border-radius: 999px;
+  padding: 0.2rem;
+  gap: 0.25rem;
+  flex-shrink: 0;
+}
+
+.mode-btn {
+  padding: 0.35rem 0.9rem;
+  border-radius: 999px;
+  border: none;
+  background: transparent;
+  color: var(--text-secondary);
+  font-size: 0.78rem;
+  font-weight: 500;
+  cursor: pointer;
+  transition: background 0.15s ease, color 0.15s ease;
+  white-space: nowrap;
+}
+
+.mode-btn:hover { color: var(--text-primary); }
+
+.mode-btn--active {
+  background: var(--accent);
+  color: #fff;
+}
+
+/* ── Upload body layouts ── */
+
+/* ATS-only: all three elements in one row */
+.upload-body--ats_only {
+  display: flex;
+  gap: 0.75rem;
+  align-items: stretch;
+}
+
+.upload-body--ats_only .drop-zone {
+  flex: 1;
+}
+
+/* ATS vs JD: two boxes in a row, button centred below */
+.upload-body--ats_vs_jd {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 0.75rem;
+}
+
+.upload-body--ats_vs_jd .upload-btn {
+  grid-column: 1 / -1;
+  justify-self: center;
+  margin-top: 0.1rem;
+}
+
+/* ── Drop zone (compact horizontal strip) ── */
+.drop-zone {
+  display: flex;
+  align-items: center;
+  gap: 0.6rem;
+  padding: 0.65rem 1rem;
+  border: 1.5px dashed var(--border);
+  border-radius: 8px;
+  cursor: pointer;
+  transition: border-color 0.18s ease, background 0.18s ease;
+  user-select: none;
+  min-width: 0;                  /* allow text truncation */
+  background: var(--bg-secondary);
+}
+
+.drop-zone:hover,
+.drop-zone:focus-visible {
+  border-color: var(--accent);
+  background: color-mix(in srgb, var(--accent) 6%, var(--bg-secondary));
+  outline: none;
+}
+
+.drop-zone.drag-over {
+  border-color: var(--accent);
+  background: color-mix(in srgb, var(--accent) 10%, var(--bg-secondary));
+}
+
+.drop-zone.has-file {
+  border-style: solid;
+  border-color: var(--success);
+  background: color-mix(in srgb, var(--success) 7%, var(--bg-secondary));
+}
+
+/* Icons */
+.dz-icon {
+  font-size: 1.1rem;
+  line-height: 1;
+  flex-shrink: 0;
+}
+
+.dz-icon--ok { font-size: 1rem; }
+
+/* Label + hint */
+.dz-label {
+  font-size: 0.82rem;
+  font-weight: 600;
+  color: var(--text-primary);
+  white-space: nowrap;
+}
+
+.dz-hint {
+  font-size: 0.72rem;
+  color: var(--text-secondary);
+  white-space: nowrap;
+}
+
+/* Separator dot between label and hint */
+.dz-label + .dz-hint::before {
+  content: '·';
+  margin-right: 0.35rem;
+  opacity: 0.5;
+}
+
+/* Filename when file is selected */
+.dz-filename {
+  font-size: 0.8rem;
+  color: var(--text-primary);
+  font-weight: 500;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  min-width: 0;
+}
+
+/* Analyse button sizing */
+.upload-btn {
+  padding: 0.65rem 1.6rem;
+  font-size: 0.875rem;
+  white-space: nowrap;
+  flex-shrink: 0;
+}
+
+/* ── Mobile: stack everything ── */
+@media (max-width: 640px) {
+  .upload-body--ats_only,
+  .upload-body--ats_vs_jd {
+    display: flex;
+    flex-direction: column;
+  }
+
+  .upload-body--ats_vs_jd .upload-btn {
+    align-self: stretch;   /* full-width tap target on mobile */
+    justify-content: center;
+  }
+
+  .upload-body--ats_only .upload-btn {
+    align-self: stretch;
+    justify-content: center;
+  }
+
+  /* Larger touch targets for drop zones */
+  .drop-zone {
+    padding: 0.9rem 1rem;
+    min-height: 52px;
+  }
+
+  /* Mode buttons: bigger tap targets */
+  .mode-btn {
+    padding: 0.5rem 0.9rem;
+    min-height: 36px;
+  }
+
+  .mode-hint { display: none; }
+}
+
+/* Very small phones: prevent mode-toggle from overflowing */
+@media (max-width: 360px) {
+  .mode-toggle {
+    gap: 0.1rem;
+  }
+
+  .mode-btn {
+    font-size: 0.72rem;
+    padding: 0.5rem 0.65rem;
+  }
+}

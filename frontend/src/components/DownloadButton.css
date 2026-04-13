@@ -1,0 +1,18 @@
+/* DownloadButton */
+.download-btn-wrapper {
+  display: flex;
+  justify-content: center;
+  padding-top: 0.5rem;
+}
+
+.download-btn {
+  background: var(--bg-secondary);
+  color: var(--accent);
+  border: 1px solid var(--accent);
+  font-size: 0.9rem;
+}
+
+.download-btn:hover {
+  background: color-mix(in srgb, var(--accent) 10%, transparent);
+  opacity: 1;
+}

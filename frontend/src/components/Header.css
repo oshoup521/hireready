@@ -1,0 +1,63 @@
+/* Header layout */
+.site-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 1.25rem 0;
+  border-bottom: 1px solid var(--border);
+  margin-bottom: 2rem;
+  gap: 1rem;
+}
+
+.header-left {
+  flex-shrink: 0;
+}
+
+.header-logo {
+  font-size: 1.5rem;
+  font-weight: 800;
+  color: var(--accent);
+  letter-spacing: -0.02em;
+}
+
+.header-tagline {
+  color: var(--text-secondary);
+  font-size: 0.85rem;
+  flex: 1;
+  text-align: center;
+}
+
+.theme-toggle {
+  background: var(--bg-secondary);
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  padding: 0.4rem 0.6rem;
+  font-size: 1.1rem;
+  cursor: pointer;
+  transition: background 0.2s ease;
+  flex-shrink: 0;
+  line-height: 1;
+}
+
+.theme-toggle:hover {
+  background: var(--bg-card);
+}
+
+/* Mobile: tighten header so more screen is usable */
+@media (max-width: 768px) {
+  .site-header {
+    padding: 0.9rem 0;
+    margin-bottom: 1.25rem;
+  }
+
+  .header-logo {
+    font-size: 1.25rem;
+  }
+}
+
+/* Hide tagline on small phones */
+@media (max-width: 480px) {
+  .header-tagline {
+    display: none;
+  }
+}

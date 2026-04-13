@@ -1,0 +1,52 @@
+/* ScoreRing */
+.score-ring-wrapper {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  padding: 1rem 0 0.5rem;
+}
+
+.score-ring-svg {
+  width: 160px;
+  height: 160px;
+}
+
+/* Animate the progress arc drawing in */
+.ring-progress {
+  transition: stroke-dashoffset 0.9s cubic-bezier(0.33, 1, 0.68, 1);
+}
+
+.ring-score-text {
+  font-family: 'Inter', sans-serif;
+  font-size: 2.4rem;
+  font-weight: 800;
+  letter-spacing: -0.03em;
+}
+
+.ring-denom-text {
+  font-family: 'Inter', sans-serif;
+  font-size: 0.85rem;
+  font-weight: 500;
+}
+
+.ring-label {
+  margin-top: 0.75rem;
+  font-size: 0.9rem;
+  font-weight: 600;
+  color: var(--text-secondary);
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+}
+
+.ring-sublabel {
+  margin-top: 0.2rem;
+  font-size: 1rem;
+  font-weight: 700;
+}
+
+@media (max-width: 480px) {
+  .score-ring-svg {
+    width: 130px;
+    height: 130px;
+  }
+}

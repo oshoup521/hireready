@@ -1,0 +1,144 @@
+/* ── PDFViewer wrapper ── */
+.pdf-viewer {
+  background: var(--bg-card);
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  overflow: hidden;
+  display: flex;
+  flex-direction: column;
+  position: sticky;
+  top: 1.5rem;
+  height: calc(100vh - 3rem);
+  transition: height 0.3s ease;
+}
+
+/* Collapsed: shrink to just the header bar */
+.pdf-viewer--collapsed {
+  height: auto;
+}
+
+/* ── Tab bar (ATS vs JD mode) ── */
+.pdf-tabs {
+  display: flex;
+  align-items: center;
+  gap: 0;
+  background: var(--bg-secondary);
+  border-bottom: 1px solid var(--border);
+  padding: 0 0.25rem;
+  flex-shrink: 0;
+  min-width: 0;
+}
+
+.pdf-tab {
+  display: flex;
+  align-items: center;
+  gap: 0.35rem;
+  padding: 0.65rem 1rem;
+  background: transparent;
+  border: none;
+  border-bottom: 2px solid transparent;
+  color: var(--text-secondary);
+  font-size: 0.8rem;
+  font-weight: 500;
+  cursor: pointer;
+  transition: color 0.15s ease, border-color 0.15s ease;
+  white-space: nowrap;
+  margin-bottom: -1px;        /* sit on top of the container border */
+}
+
+.pdf-tab:hover {
+  color: var(--text-primary);
+}
+
+.pdf-tab--active {
+  color: var(--accent-light);
+  border-bottom-color: var(--accent);
+  font-weight: 600;
+}
+
+.pdf-tab-icon {
+  font-size: 0.95rem;
+  line-height: 1;
+}
+
+/* Filename shown after the tabs, right-aligned, truncated */
+.pdf-active-name {
+  flex: 1;
+  font-size: 0.72rem;
+  color: var(--text-secondary);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  text-align: right;
+  padding-right: 0.75rem;
+  min-width: 0;
+}
+
+/* ── Single-file header (ATS-only mode) ── */
+.pdf-single-header {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 0.6rem 1rem;
+  background: var(--bg-secondary);
+  border-bottom: 1px solid var(--border);
+  flex-shrink: 0;
+  min-width: 0;
+}
+
+.pdf-single-header .pdf-active-name {
+  text-align: left;
+  padding-right: 0;
+}
+
+/* ── PDF iframe ── */
+.pdf-iframe {
+  flex: 1;
+  width: 100%;
+  border: none;
+  background: #ffffff;
+}
+
+/* ── Collapse toggle button ── */
+.pdf-collapse-btn {
+  margin-left: auto;
+  padding: 0.4rem 0.6rem;
+  background: transparent;
+  border: none;
+  color: var(--text-secondary);
+  font-size: 0.75rem;
+  cursor: pointer;
+  border-radius: 6px;
+  flex-shrink: 0;
+  line-height: 1;
+  transition: color 0.15s ease, background 0.15s ease;
+  min-width: 2rem;
+  min-height: 2rem;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.pdf-collapse-btn:hover {
+  color: var(--text-primary);
+  background: color-mix(in srgb, var(--accent) 8%, transparent);
+}
+
+/* ── Mobile: static height, report card already above via CSS order ── */
+@media (max-width: 900px) {
+  .pdf-viewer {
+    position: static;
+    height: 55vh;
+  }
+
+  /* When collapsed on mobile, just show the header bar */
+  .pdf-viewer--collapsed {
+    height: auto;
+  }
+}
+
+@media (max-width: 480px) {
+  .pdf-viewer {
+    height: 50vh;
+  }
+}

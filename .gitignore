@@ -1,0 +1,68 @@
+# ========================
+# Python / Backend
+# ========================
+__pycache__/
+*.py[cod]
+*.pyo
+*.pyd
+*.pycache
+*.egg-info/
+dist/
+build/
+*.egg
+.eggs/
+*.so
+
+# Virtual environments
+venv/
+.venv/
+env/
+.env
+backend/.env
+
+# spaCy model cache
+*.whl
+
+# pytest / coverage
+.pytest_cache/
+.coverage
+htmlcov/
+
+# ========================
+# Node / Frontend
+# ========================
+node_modules/
+frontend/node_modules/
+dist/
+frontend/dist/
+.pnp
+.pnp.js
+*.local
+
+# Frontend env
+frontend/.env
+frontend/.env.local
+frontend/.env.*.local
+
+# Build output
+frontend/build/
+
+# ========================
+# IDE / Editor
+# ========================
+.vscode/
+.idea/
+*.swp
+*.swo
+*.sublime-project
+*.sublime-workspace
+.DS_Store
+Thumbs.db
+
+# ========================
+# Misc
+# ========================
+*.log
+*.tmp
+*.bak
+.cache/

@@ -1,0 +1,37 @@
+/* ProgressBar */
+.progress-bar-wrapper {
+  margin-bottom: 1rem;
+}
+
+.progress-label-row {
+  display: flex;
+  justify-content: space-between;
+  align-items: baseline;
+  margin-bottom: 0.35rem;
+}
+
+.progress-label {
+  font-size: 0.875rem;
+  font-weight: 500;
+  color: var(--text-primary);
+}
+
+.progress-score {
+  font-size: 0.875rem;
+  font-weight: 700;
+}
+
+/* Track — grey background */
+.progress-track {
+  height: 8px;
+  background: var(--border);
+  border-radius: 999px;
+  overflow: hidden;
+}
+
+/* Fill — animated via inline style + CSS transition */
+.progress-fill {
+  height: 100%;
+  border-radius: 999px;
+  transition: width 0.85s cubic-bezier(0.33, 1, 0.68, 1);
+}
