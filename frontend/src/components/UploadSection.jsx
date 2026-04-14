@@ -16,10 +16,18 @@ export default function UploadSection({ onAnalyze, isLoading, isWakingUp, error 
     if (newMode === 'ats_only') setJdFile(null)
   }
 
+  function isValidFile(file) {
+    return file && (
+      file.type === 'application/pdf' ||
+      file.type === 'application/vnd.openxmlformats-officedocument.wordprocessingml.document' ||
+      file.name.toLowerCase().endsWith('.docx')
+    )
+  }
+
   function handleFileChange(setter) {
     return (e) => {
       const file = e.target.files?.[0]
-      if (file && file.type === 'application/pdf') setter(file)
+      if (isValidFile(file)) setter(file)
     }
   }
 
@@ -28,7 +36,7 @@ export default function UploadSection({ onAnalyze, isLoading, isWakingUp, error 
       e.preventDefault()
       setDrag(false)
       const file = e.dataTransfer.files?.[0]
-      if (file && file.type === 'application/pdf') setter(file)
+      if (isValidFile(file)) setter(file)
     }
   }
 
@@ -75,9 +83,9 @@ export default function UploadSection({ onAnalyze, isLoading, isWakingUp, error 
           inputRef={resumeInputRef}
           file={resumeFile}
           isDragOver={resumeDragOver}
-          label="Resume PDF"
+          label="Resume (PDF or DOCX)"
           icon="📄"
-          ariaLabel="Upload resume PDF"
+          ariaLabel="Upload resume PDF or DOCX"
           onChange={handleFileChange(setResumeFile)}
           onDrop={handleDrop(setResumeFile, setResumeDragOver)}
           onDragOver={(e) => { e.preventDefault(); setResumeDragOver(true) }}
@@ -91,9 +99,9 @@ export default function UploadSection({ onAnalyze, isLoading, isWakingUp, error 
             inputRef={jdInputRef}
             file={jdFile}
             isDragOver={jdDragOver}
-            label="Job Description PDF"
+            label="Job Description (PDF or DOCX)"
             icon="📋"
-            ariaLabel="Upload job description PDF"
+            ariaLabel="Upload job description PDF or DOCX"
             onChange={handleFileChange(setJdFile)}
             onDrop={handleDrop(setJdFile, setJdDragOver)}
             onDragOver={(e) => { e.preventDefault(); setJdDragOver(true) }}
@@ -146,7 +154,7 @@ function DropZone({ inputRef, file, isDragOver, label, icon, ariaLabel,
       <input
         ref={inputRef}
         type="file"
-        accept="application/pdf"
+        accept=".pdf,.docx,application/pdf,application/vnd.openxmlformats-officedocument.wordprocessingml.document"
         onChange={onChange}
         style={{ display: 'none' }}
       />

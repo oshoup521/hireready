@@ -18,7 +18,7 @@ from fastapi import FastAPI, File, UploadFile, HTTPException
 from fastapi.middleware.cors import CORSMiddleware
 from dotenv import load_dotenv
 
-from parser import extract_text_from_pdf
+from parser import extract_text
 from scorer import score_resume, score_resume_only
 
 # ---------------------------------------------------------------------------
@@ -96,13 +96,15 @@ async def analyze_resume(
             detail=f"Failed to read uploaded resume: {exc}",
         )
 
-    # Step 2 — Extract plain text from the resume PDF
+    # Step 2 — Extract plain text from the resume (PDF or DOCX)
     try:
-        resume_text = extract_text_from_pdf(resume_bytes)
-    except Exception as exc:
+        resume_text = extract_text(resume_bytes, resume.filename or "resume.pdf")
+    except ValueError as exc:
+        raise HTTPException(status_code=422, detail=str(exc))
+    except Exception:
         raise HTTPException(
             status_code=422,
-            detail="Could not extract text from PDF (resume). Please ensure the file is a valid, non-scanned PDF.",
+            detail="Could not extract text from resume. Please ensure the file is a valid PDF or DOCX.",
         )
 
     # Step 3 — Run NLP scoring (mode depends on whether a JD was uploaded)
@@ -114,11 +116,13 @@ async def analyze_resume(
             # JD-comparison mode: read and parse the JD, then compare
             try:
                 jd_bytes = await jd.read()
-                jd_text = extract_text_from_pdf(jd_bytes)
+                jd_text = extract_text(jd_bytes, jd.filename or "jd.pdf")
+            except ValueError as exc:
+                raise HTTPException(status_code=422, detail=str(exc))
             except Exception:
                 raise HTTPException(
                     status_code=422,
-                    detail="Could not extract text from PDF (job description). Please ensure the file is a valid, non-scanned PDF.",
+                    detail="Could not extract text from job description. Please ensure the file is a valid PDF or DOCX.",
                 )
             result = score_resume(resume_text, jd_text)
     except HTTPException:
