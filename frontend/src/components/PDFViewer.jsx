@@ -1,6 +1,29 @@
 import { useMemo, useEffect, useState } from 'react'
 import './PDFViewer.css'
 
+// Returns true if the file is a DOCX (browser can't render DOCX in an iframe)
+function isDocx(file) {
+  if (!file) return false
+  return (
+    file.name.toLowerCase().endsWith('.docx') ||
+    file.type === 'application/vnd.openxmlformats-officedocument.wordprocessingml.document'
+  )
+}
+
+// Fallback UI shown when the file is a DOCX
+function DocxFallback({ file, url }) {
+  return (
+    <div className="docx-fallback">
+      <span className="docx-fallback-icon">📝</span>
+      <p className="docx-fallback-title">{file.name}</p>
+      <p className="docx-fallback-note">DOCX files cannot be previewed in the browser.</p>
+      <a href={url} download={file.name} className="docx-fallback-btn">
+        Download to view
+      </a>
+    </div>
+  )
+}
+
 /**
  * PDFViewer — Sticky left panel that shows one or two PDFs.
  *
@@ -90,22 +113,25 @@ export default function PDFViewer({ file, jdFile }) {
         </div>
       )}
 
-      {/* ── PDF iframes — hidden when collapsed ── */}
+      {/* ── PDF iframes / DOCX fallback — hidden when collapsed ── */}
       {!collapsed && (
         <>
-          <iframe
-            src={resumeUrl}
-            title="Resume"
-            className="pdf-iframe"
-            style={{ display: activeTab === 'resume' ? 'flex' : 'none' }}
-          />
+          {/* Resume */}
+          <div style={{ display: activeTab === 'resume' ? 'flex' : 'none', flex: 1, overflow: 'hidden' }}>
+            {isDocx(file)
+              ? <DocxFallback file={file} url={resumeUrl} />
+              : <iframe src={resumeUrl} title="Resume" className="pdf-iframe" />
+            }
+          </div>
+
+          {/* Job Description */}
           {jdUrl && (
-            <iframe
-              src={jdUrl}
-              title="Job Description"
-              className="pdf-iframe"
-              style={{ display: activeTab === 'jd' ? 'flex' : 'none' }}
-            />
+            <div style={{ display: activeTab === 'jd' ? 'flex' : 'none', flex: 1, overflow: 'hidden' }}>
+              {isDocx(jdFile)
+                ? <DocxFallback file={jdFile} url={jdUrl} />
+                : <iframe src={jdUrl} title="Job Description" className="pdf-iframe" />
+              }
+            </div>
           )}
         </>
       )}
