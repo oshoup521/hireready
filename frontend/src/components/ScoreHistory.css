@@ -157,10 +157,35 @@
   border-color: color-mix(in srgb, var(--danger) 30%, transparent);
 }
 
+/* Footer row: export + clear */
+.history-footer {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-top: 0.85rem;
+  gap: 0.5rem;
+}
+
+/* Export CSV button */
+.history-export-btn {
+  background: transparent;
+  border: 1px solid var(--border);
+  color: var(--text-secondary);
+  font-size: 0.75rem;
+  font-weight: 600;
+  padding: 0.3rem 0.75rem;
+  border-radius: 6px;
+  cursor: pointer;
+  transition: color 0.15s, border-color 0.15s;
+}
+
+.history-export-btn:hover {
+  color: var(--accent-light);
+  border-color: var(--accent);
+}
+
 /* Clear all link */
 .history-clear-btn {
-  display: block;
-  margin-top: 0.85rem;
   background: transparent;
   border: none;
   color: var(--text-secondary);
@@ -172,6 +197,254 @@
 
 .history-clear-btn:hover {
   color: var(--danger);
+}
+
+/* Score trend sparkline */
+.history-chart-wrap {
+  padding: 0.5rem 0 0.75rem;
+  margin-bottom: 0.5rem;
+  border-bottom: 1px solid var(--border);
+}
+
+.history-chart-label {
+  font-size: 0.68rem;
+  font-weight: 600;
+  color: var(--text-secondary);
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  display: block;
+  margin-bottom: 0.25rem;
+}
+
+/* Best-score entry highlight */
+.history-entry--best {
+  border-color: color-mix(in srgb, var(--warning) 50%, transparent);
+  background: color-mix(in srgb, var(--warning) 4%, var(--bg-secondary));
+}
+
+/* Entry replaced by inline undo row */
+.history-entry--undo {
+  flex-direction: column;
+  align-items: stretch;
+  gap: 0.4rem;
+  padding: 0.55rem 0.75rem;
+  background: color-mix(in srgb, var(--danger) 5%, var(--bg-secondary));
+  border-color: color-mix(in srgb, var(--danger) 25%, transparent);
+}
+
+.history-undo-inline-text {
+  font-size: 0.8rem;
+  color: var(--text-secondary);
+  display: flex;
+  align-items: center;
+  gap: 0.35rem;
+  flex-wrap: wrap;
+}
+
+.history-undo-inline-text span {
+  color: var(--text-primary);
+  font-weight: 500;
+}
+
+/* Inline bar — full width, no wrapping needed */
+.history-undo-bar-track--inline {
+  width: 100%;
+}
+
+/* Applied entry subtle tint */
+.history-entry--applied {
+  border-color: color-mix(in srgb, var(--success) 40%, transparent);
+}
+
+/* Crown icon */
+.history-crown {
+  font-size: 0.9rem;
+  flex-shrink: 0;
+  filter: drop-shadow(0 0 4px rgba(240,165,0,0.5));
+}
+
+/* Meta row: date + applied tag on same line */
+.history-meta-row {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  flex-wrap: wrap;
+}
+
+/* Applied tag button */
+.history-applied-tag {
+  background: transparent;
+  border: 1px solid var(--border);
+  color: var(--text-secondary);
+  font-size: 0.65rem;
+  font-weight: 600;
+  padding: 0.1rem 0.45rem;
+  border-radius: 999px;
+  cursor: pointer;
+  transition: background 0.15s, color 0.15s, border-color 0.15s;
+  white-space: nowrap;
+}
+
+.history-applied-tag:hover {
+  border-color: var(--success);
+  color: var(--success);
+}
+
+.history-applied-tag--active {
+  background: color-mix(in srgb, var(--success) 12%, transparent);
+  border-color: var(--success);
+  color: var(--success);
+}
+
+/* ── Confirmation dialog ── */
+.history-confirm-overlay {
+  position: fixed;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.55);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 1000;
+  padding: 1rem;
+}
+
+.history-confirm-box {
+  background: var(--bg-card);
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  padding: 1.4rem 1.5rem 1.2rem;
+  max-width: 320px;
+  width: 100%;
+  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.4);
+}
+
+.history-confirm-msg {
+  font-size: 0.95rem;
+  font-weight: 600;
+  color: var(--text-primary);
+  margin-bottom: 1rem;
+  line-height: 1.5;
+}
+
+.history-confirm-msg span {
+  display: block;
+  font-size: 0.78rem;
+  font-weight: 400;
+  color: var(--text-secondary);
+  margin-top: 0.3rem;
+}
+
+.history-confirm-filename {
+  font-weight: 600;
+  color: var(--text-primary) !important;
+  word-break: break-all;
+}
+
+.history-confirm-actions {
+  display: flex;
+  gap: 0.6rem;
+  justify-content: flex-end;
+}
+
+.history-confirm-cancel {
+  background: transparent;
+  border: 1px solid var(--border);
+  color: var(--text-secondary);
+  font-size: 0.82rem;
+  font-weight: 600;
+  padding: 0.4rem 1rem;
+  border-radius: 7px;
+  cursor: pointer;
+  transition: border-color 0.15s, color 0.15s;
+}
+
+.history-confirm-cancel:hover {
+  border-color: var(--accent);
+  color: var(--text-primary);
+}
+
+.history-confirm-ok {
+  background: var(--danger);
+  border: none;
+  color: #fff;
+  font-size: 0.82rem;
+  font-weight: 700;
+  padding: 0.4rem 1rem;
+  border-radius: 7px;
+  cursor: pointer;
+  transition: opacity 0.15s;
+}
+
+.history-confirm-ok:hover {
+  opacity: 0.85;
+}
+
+/* Export variant — accent colour instead of danger */
+.history-confirm-ok--export {
+  background: var(--accent);
+}
+
+/* ── Undo toast ── */
+.history-undo-wrap {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  padding: 0.7rem 0;
+  flex-wrap: wrap;
+  position: relative;
+}
+
+.history-undo-text {
+  flex: 1;
+  font-size: 0.82rem;
+  color: var(--text-secondary);
+  font-style: italic;
+}
+
+.history-undo-btn {
+  background: transparent;
+  border: 1px solid var(--accent);
+  color: var(--accent-light);
+  font-size: 0.78rem;
+  font-weight: 700;
+  padding: 0.3rem 0.85rem;
+  border-radius: 6px;
+  cursor: pointer;
+  transition: background 0.15s, color 0.15s;
+  white-space: nowrap;
+}
+
+.history-undo-btn:hover {
+  background: var(--accent);
+  color: #fff;
+}
+
+/* Countdown bar */
+.history-undo-bar-track {
+  width: 100%;
+  height: 3px;
+  background: var(--border);
+  border-radius: 2px;
+  overflow: hidden;
+}
+
+.history-undo-bar-fill {
+  height: 100%;
+  width: 100%;
+  background: var(--accent);
+  border-radius: 2px;
+  transform-origin: left;
+  animation: undoCountdown 5s linear forwards;
+}
+
+@keyframes undoCountdown {
+  from { width: 100%; }
+  to   { width: 0%; }
+}
+
+/* Hide list (but keep DOM so layout doesn't shift) */
+.history-list--hidden {
+  display: none;
 }
 
 /* Mobile */

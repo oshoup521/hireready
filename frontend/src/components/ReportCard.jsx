@@ -1,10 +1,63 @@
-import { useState } from 'react'
+import { useState, useEffect, useRef } from 'react'
+import { createPortal } from 'react-dom'
 import ScoreRing from './ScoreRing.jsx'
 import ProgressBar from './ProgressBar.jsx'
 import KeywordBadges from './KeywordBadges.jsx'
 import DownloadButton from './DownloadButton.jsx'
 import DetailPanel from './DetailPanel.jsx'
+import ScoreShareCard from './ScoreShareCard.jsx'
 import './ReportCard.css'
+
+// ---------------------------------------------------------------------------
+// Confetti — pure-CSS particle burst fired when score ≥ 75
+// ---------------------------------------------------------------------------
+function Confetti() {
+  const COLORS = ['#6c63ff', '#4caf7d', '#f0a500', '#e05c5c', '#8b85ff', '#ffffff', '#ff6b9d', '#00d4ff']
+  // 90 pieces with staggered delays spread across 2s so they rain continuously
+  const PIECES = Array.from({ length: 90 }, (_, i) => {
+    const isRect = Math.random() > 0.5   // mix squares and thin rectangles
+    return {
+      id: i,
+      color: COLORS[i % COLORS.length],
+      left: `${Math.random() * 100}%`,
+      // Each piece takes 3.5 – 6s to fall the full screen height
+      animDuration: `${3.5 + Math.random() * 2.5}s`,
+      // Spread launch times across 2.5s so new pieces keep appearing
+      animDelay: `${Math.random() * 2.5}s`,
+      width:  isRect ? `${3 + Math.random() * 5}px` : `${5 + Math.random() * 6}px`,
+      height: isRect ? `${8 + Math.random() * 10}px` : `${5 + Math.random() * 6}px`,
+      borderRadius: isRect ? '1px' : '50%',
+      // Sideways drift distance — positive = right, negative = left
+      drift: `${(Math.random() - 0.5) * 200}px`,
+      rotate: `${Math.random() * 360}deg`,
+    }
+  })
+
+  // Portal to document.body so position:fixed is relative to the true viewport,
+  // not trapped inside the ancestor's transform/animation stacking context.
+  return createPortal(
+    <div className="confetti-wrapper" aria-hidden="true">
+      {PIECES.map((p) => (
+        <div
+          key={p.id}
+          className="confetti-piece"
+          style={{
+            left: p.left,
+            width: p.width,
+            height: p.height,
+            background: p.color,
+            borderRadius: p.borderRadius,
+            animationDuration: p.animDuration,
+            animationDelay: p.animDelay,
+            '--rotate': p.rotate,
+            '--drift': p.drift,
+          }}
+        />
+      ))}
+    </div>,
+    document.body
+  )
+}
 
 /* Small hook: returns a copy-to-clipboard function + a transient "Copied!" state */
 function useCopy() {
@@ -29,6 +82,19 @@ function useCopy() {
  */
 export default function ReportCard({ report }) {
   const { copiedIdx, copy } = useCopy()
+  const [showShareCard, setShowShareCard] = useState(false)
+  const [showConfetti, setShowConfetti] = useState(false)
+
+  // Fire confetti once when a high score is loaded
+  useEffect(() => {
+    if (report?.overall_score >= 75) {
+      setShowConfetti(true)
+      // Keep confetti alive until the last piece (2.5s delay + 6s fall = 8.5s)
+      const t = setTimeout(() => setShowConfetti(false), 9000)
+      return () => clearTimeout(t)
+    }
+  }, [report?.overall_score])
+
   const {
     mode,
     overall_score,
@@ -50,6 +116,11 @@ export default function ReportCard({ report }) {
     job_title_match,
     title_relevance_score,
     rewrite_suggestions,
+    readability_score,
+    buzzwords_found,
+    cover_letter_score,
+    cover_letter_matched,
+    cover_letter_missing,
     matched_keywords,
     missing_keywords,
     extra_keywords,
@@ -64,6 +135,13 @@ export default function ReportCard({ report }) {
 
   return (
     <div id="report-card">
+      {/* Confetti burst for high scores */}
+      {showConfetti && <Confetti />}
+
+      {/* Share card overlay */}
+      {showShareCard && (
+        <ScoreShareCard report={report} onClose={() => setShowShareCard(false)} />
+      )}
 
       {/* Mode badge */}
       <div className="mode-badge-row">
@@ -86,6 +164,16 @@ export default function ReportCard({ report }) {
             </>
           )}
         </div>
+
+        {/* Share card button */}
+        <button
+          className="share-score-btn"
+          onClick={() => setShowShareCard(true)}
+          type="button"
+          title="Generate a shareable score card"
+        >
+          🎴 Share Score Card
+        </button>
       </div>
 
       {/* 2 — Sub-score progress bars */}
@@ -295,7 +383,74 @@ export default function ReportCard({ report }) {
         </div>
       )}
 
-      {/* 8 — Download button */}
+      {/* 8 — Readability & Buzzwords */}
+      {(readability_score != null || buzzwords_found?.length > 0) && (
+        <div className="card">
+          <h3 className="section-title">Resume Insights</h3>
+
+          {/* Readability (Flesch Reading Ease) */}
+          {readability_score != null && (
+            <>
+              <ProgressBar
+                label="Readability (Flesch Reading Ease)"
+                score={readability_score}
+                color={readability_score >= 60 ? 'var(--success)' : readability_score >= 40 ? 'var(--warning)' : 'var(--danger)'}
+              />
+              <p className="readability-hint">
+                {readability_score >= 70
+                  ? '✅ Very easy to read — great for broad audiences.'
+                  : readability_score >= 60
+                  ? '✅ Standard / plain English — good readability.'
+                  : readability_score >= 40
+                  ? '⚠️ Somewhat complex — consider simplifying long sentences.'
+                  : '❌ Difficult to read — shorten sentences and use simpler vocabulary.'}
+              </p>
+            </>
+          )}
+
+          {/* Buzzword detector */}
+          {buzzwords_found?.length > 0 && (
+            <div className="buzzword-section">
+              <div className="buzzword-header">
+                <span className="buzzword-icon">🚩</span>
+                <span className="buzzword-title">Buzzwords Detected ({buzzwords_found.length})</span>
+              </div>
+              <p className="buzzword-desc">
+                These overused phrases can hurt your credibility — replace them with concrete examples and metrics.
+              </p>
+              <div className="buzzword-list">
+                {buzzwords_found.map((bw) => (
+                  <span key={bw} className="buzzword-badge">{bw}</span>
+                ))}
+              </div>
+            </div>
+          )}
+        </div>
+      )}
+
+      {/* 9 — Cover Letter Analysis */}
+      {cover_letter_score != null && (
+        <div className="card">
+          <h3 className="section-title">Cover Letter Analysis</h3>
+          <ProgressBar
+            label="Cover Letter JD Match"
+            score={cover_letter_score}
+            color="var(--accent)"
+          />
+          {cover_letter_matched?.length > 0 && (
+            <p className="cl-hint cl-hint--matched">
+              ✅ Matched {cover_letter_matched.length} JD keywords in cover letter.
+            </p>
+          )}
+          {cover_letter_missing?.length > 0 && (
+            <p className="cl-hint cl-hint--missing">
+              ❌ Missing keywords: {cover_letter_missing.slice(0, 5).join(', ')}{cover_letter_missing.length > 5 ? ` +${cover_letter_missing.length - 5} more` : ''}.
+            </p>
+          )}
+        </div>
+      )}
+
+      {/* 10 — Download button */}
       <DownloadButton />
 
     </div>

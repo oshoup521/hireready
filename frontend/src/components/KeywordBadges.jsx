@@ -1,3 +1,4 @@
+import { useState } from 'react'
 import './KeywordBadges.css'
 
 const MAX_DISPLAY = 20  // Max badges per section before showing "+N more"
@@ -14,6 +15,16 @@ const MAX_DISPLAY = 20  // Max badges per section before showing "+N more"
  *   resumeOnlyKeywords {string[]}  All keywords extracted from the resume
  */
 export default function KeywordBadges({ matched, missing, extra, resumeOnlyKeywords }) {
+  const [copiedMissing, setCopiedMissing] = useState(false)
+
+  function copyMissingKeywords() {
+    if (!missing?.length) return
+    navigator.clipboard.writeText(missing.join(', ')).then(() => {
+      setCopiedMissing(true)
+      setTimeout(() => setCopiedMissing(false), 2000)
+    })
+  }
+
   // ATS-only mode: show a single group of the resume's own keywords
   if (resumeOnlyKeywords) {
     return (
@@ -42,6 +53,18 @@ export default function KeywordBadges({ matched, missing, extra, resumeOnlyKeywo
         title="Missing Keywords"
         keywords={missing}
         variant="missing"
+        action={
+          missing?.length > 0 && (
+            <button
+              className={`copy-missing-btn ${copiedMissing ? 'copy-missing-btn--copied' : ''}`}
+              onClick={copyMissingKeywords}
+              type="button"
+              title="Copy all missing keywords"
+            >
+              {copiedMissing ? '✓ Copied!' : '⎘ Copy all'}
+            </button>
+          )
+        }
       />
       <BadgeGroup
         icon="➕"
@@ -60,8 +83,9 @@ export default function KeywordBadges({ matched, missing, extra, resumeOnlyKeywo
  *   title    {string}
  *   keywords {string[]}
  *   variant  {"matched"|"missing"|"extra"}
+ *   action   {ReactNode}  Optional action element rendered in the header
  */
-function BadgeGroup({ icon, title, keywords, variant }) {
+function BadgeGroup({ icon, title, keywords, variant, action }) {
   const shown = keywords.slice(0, MAX_DISPLAY)
   const remaining = keywords.length - shown.length
 
@@ -71,6 +95,7 @@ function BadgeGroup({ icon, title, keywords, variant }) {
         <span className="badge-icon">{icon}</span>
         <span className="badge-group-title">{title}</span>
         <span className="badge-count">{keywords.length}</span>
+        {action && <span className="badge-group-action">{action}</span>}
       </div>
 
       <div className="badge-list">

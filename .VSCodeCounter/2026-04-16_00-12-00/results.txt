@@ -1,0 +1,87 @@
+Date : 2026-04-16 00:12:00
+Directory : c:\Users\oshoupadhyay\PROJECTS\MY-PROJECTs\hireready
+Total : 45 files,  7857 codes, 1005 comments, 970 blanks, all 9832 lines
+
+Languages
++------------------+------------+------------+------------+------------+------------+
+| language         | files      | code       | comment    | blank      | total      |
++------------------+------------+------------+------------+------------+------------+
+| JSON             |          4 |      2,116 |          0 |          4 |      2,120 |
+| PostCSS          |         14 |      2,087 |        153 |        346 |      2,586 |
+| JavaScript JSX   |         15 |      1,717 |        278 |        230 |      2,225 |
+| Python           |          4 |      1,147 |        539 |        205 |      1,891 |
+| Markdown         |          2 |        645 |          0 |        158 |        803 |
+| XML              |          2 |         78 |         26 |         19 |        123 |
+| HTML             |          1 |         34 |          4 |          4 |         42 |
+| YAML             |          1 |         13 |          2 |          1 |         16 |
+| JavaScript       |          1 |         12 |          3 |          2 |         17 |
+| pip requirements |          1 |          8 |          0 |          1 |          9 |
++------------------+------------+------------+------------+------------+------------+
+
+Directories
++---------------------------------------------------------------------------------------------------+------------+------------+------------+------------+------------+
+| path                                                                                              | files      | code       | comment    | blank      | total      |
++---------------------------------------------------------------------------------------------------+------------+------------+------------+------------+------------+
+| .                                                                                                 |         45 |      7,857 |      1,005 |        970 |      9,832 |
+| . (Files)                                                                                         |          3 |        658 |          2 |        159 |        819 |
+| .claude                                                                                           |          1 |          8 |          0 |          1 |          9 |
+| backend                                                                                           |          5 |      1,155 |        539 |        206 |      1,900 |
+| frontend                                                                                          |         36 |      6,036 |        464 |        604 |      7,104 |
+| frontend (Files)                                                                                  |          5 |      2,154 |          7 |          9 |      2,170 |
+| frontend\public                                                                                   |          2 |         78 |         26 |         19 |        123 |
+| frontend\src                                                                                      |         29 |      3,804 |        431 |        576 |      4,811 |
+| frontend\src (Files)                                                                              |          3 |        374 |         57 |         62 |        493 |
+| frontend\src\components                                                                           |         26 |      3,430 |        374 |        514 |      4,318 |
++---------------------------------------------------------------------------------------------------+------------+------------+------------+------------+------------+
+
+Files
++---------------------------------------------------------------------------------------------------+------------------+------------+------------+------------+------------+
+| filename                                                                                          | language         | code       | comment    | blank      | total      |
++---------------------------------------------------------------------------------------------------+------------------+------------+------------+------------+------------+
+| c:\Users\oshoupadhyay\PROJECTS\MY-PROJECTs\hireready\.claude\settings.local.json                  | JSON             |          8 |          0 |          1 |          9 |
+| c:\Users\oshoupadhyay\PROJECTS\MY-PROJECTs\hireready\CLAUDE.md                                    | Markdown         |        343 |          0 |         69 |        412 |
+| c:\Users\oshoupadhyay\PROJECTS\MY-PROJECTs\hireready\README.md                                    | Markdown         |        302 |          0 |         89 |        391 |
+| c:\Users\oshoupadhyay\PROJECTS\MY-PROJECTs\hireready\backend\generate_samples.py                  | Python           |        111 |          9 |         11 |        131 |
+| c:\Users\oshoupadhyay\PROJECTS\MY-PROJECTs\hireready\backend\main.py                              | Python           |        128 |         68 |         23 |        219 |
+| c:\Users\oshoupadhyay\PROJECTS\MY-PROJECTs\hireready\backend\parser.py                            | Python           |         53 |         55 |         21 |        129 |
+| c:\Users\oshoupadhyay\PROJECTS\MY-PROJECTs\hireready\backend\requirements.txt                     | pip requirements |          8 |          0 |          1 |          9 |
+| c:\Users\oshoupadhyay\PROJECTS\MY-PROJECTs\hireready\backend\scorer.py                            | Python           |        855 |        407 |        150 |      1,412 |
+| c:\Users\oshoupadhyay\PROJECTS\MY-PROJECTs\hireready\frontend\index.html                          | HTML             |         34 |          4 |          4 |         42 |
+| c:\Users\oshoupadhyay\PROJECTS\MY-PROJECTs\hireready\frontend\package-lock.json                   | JSON             |      2,084 |          0 |          1 |      2,085 |
+| c:\Users\oshoupadhyay\PROJECTS\MY-PROJECTs\hireready\frontend\package.json                        | JSON             |         19 |          0 |          1 |         20 |
+| c:\Users\oshoupadhyay\PROJECTS\MY-PROJECTs\hireready\frontend\public\logo.svg                     | XML              |         20 |          7 |          6 |         33 |
+| c:\Users\oshoupadhyay\PROJECTS\MY-PROJECTs\hireready\frontend\public\og-image.svg                 | XML              |         58 |         19 |         13 |         90 |
+| c:\Users\oshoupadhyay\PROJECTS\MY-PROJECTs\hireready\frontend\src\App.jsx                         | JavaScript JSX   |        126 |         15 |         19 |        160 |
+| c:\Users\oshoupadhyay\PROJECTS\MY-PROJECTs\hireready\frontend\src\components\CompareMode.css      | PostCSS          |        205 |          5 |         33 |        243 |
+| c:\Users\oshoupadhyay\PROJECTS\MY-PROJECTs\hireready\frontend\src\components\CompareMode.jsx      | JavaScript JSX   |        173 |         15 |         20 |        208 |
+| c:\Users\oshoupadhyay\PROJECTS\MY-PROJECTs\hireready\frontend\src\components\DetailPanel.css      | PostCSS          |        101 |          5 |         16 |        122 |
+| c:\Users\oshoupadhyay\PROJECTS\MY-PROJECTs\hireready\frontend\src\components\DetailPanel.jsx      | JavaScript JSX   |         23 |          9 |          4 |         36 |
+| c:\Users\oshoupadhyay\PROJECTS\MY-PROJECTs\hireready\frontend\src\components\DownloadButton.css   | PostCSS          |         15 |          1 |          3 |         19 |
+| c:\Users\oshoupadhyay\PROJECTS\MY-PROJECTs\hireready\frontend\src\components\DownloadButton.jsx   | JavaScript JSX   |         14 |          4 |          3 |         21 |
+| c:\Users\oshoupadhyay\PROJECTS\MY-PROJECTs\hireready\frontend\src\components\Header.css           | PostCSS          |         91 |          5 |         15 |        111 |
+| c:\Users\oshoupadhyay\PROJECTS\MY-PROJECTs\hireready\frontend\src\components\Header.jsx           | JavaScript JSX   |         30 |         12 |          5 |         47 |
+| c:\Users\oshoupadhyay\PROJECTS\MY-PROJECTs\hireready\frontend\src\components\KeywordBadges.css    | PostCSS          |         64 |          5 |         13 |         82 |
+| c:\Users\oshoupadhyay\PROJECTS\MY-PROJECTs\hireready\frontend\src\components\KeywordBadges.jsx    | JavaScript JSX   |         69 |         21 |          7 |         97 |
+| c:\Users\oshoupadhyay\PROJECTS\MY-PROJECTs\hireready\frontend\src\components\PDFViewer.css        | PostCSS          |        189 |         19 |         28 |        236 |
+| c:\Users\oshoupadhyay\PROJECTS\MY-PROJECTs\hireready\frontend\src\components\PDFViewer.jsx        | JavaScript JSX   |        102 |         25 |         14 |        141 |
+| c:\Users\oshoupadhyay\PROJECTS\MY-PROJECTs\hireready\frontend\src\components\ProgressBar.css      | PostCSS          |         29 |          3 |          6 |         38 |
+| c:\Users\oshoupadhyay\PROJECTS\MY-PROJECTs\hireready\frontend\src\components\ProgressBar.jsx      | JavaScript JSX   |         35 |         11 |          7 |         53 |
+| c:\Users\oshoupadhyay\PROJECTS\MY-PROJECTs\hireready\frontend\src\components\ReportCard.css       | PostCSS          |        286 |         16 |         54 |        356 |
+| c:\Users\oshoupadhyay\PROJECTS\MY-PROJECTs\hireready\frontend\src\components\ReportCard.jsx       | JavaScript JSX   |        366 |         40 |         36 |        442 |
+| c:\Users\oshoupadhyay\PROJECTS\MY-PROJECTs\hireready\frontend\src\components\ResumeTextViewer.css | PostCSS          |        271 |         17 |         39 |        327 |
+| c:\Users\oshoupadhyay\PROJECTS\MY-PROJECTs\hireready\frontend\src\components\ResumeTextViewer.jsx | JavaScript JSX   |        157 |         45 |         27 |        229 |
+| c:\Users\oshoupadhyay\PROJECTS\MY-PROJECTs\hireready\frontend\src\components\ScoreHistory.css     | PostCSS          |        153 |          9 |         22 |        184 |
+| c:\Users\oshoupadhyay\PROJECTS\MY-PROJECTs\hireready\frontend\src\components\ScoreHistory.jsx     | JavaScript JSX   |        111 |         17 |         15 |        143 |
+| c:\Users\oshoupadhyay\PROJECTS\MY-PROJECTs\hireready\frontend\src\components\ScoreRing.css        | PostCSS          |         53 |          3 |         11 |         67 |
+| c:\Users\oshoupadhyay\PROJECTS\MY-PROJECTs\hireready\frontend\src\components\ScoreRing.jsx        | JavaScript JSX   |         86 |         16 |         12 |        114 |
+| c:\Users\oshoupadhyay\PROJECTS\MY-PROJECTs\hireready\frontend\src\components\ScoreShareCard.css   | PostCSS          |        182 |          5 |         27 |        214 |
+| c:\Users\oshoupadhyay\PROJECTS\MY-PROJECTs\hireready\frontend\src\components\ScoreShareCard.jsx   | JavaScript JSX   |        233 |         35 |         39 |        307 |
+| c:\Users\oshoupadhyay\PROJECTS\MY-PROJECTs\hireready\frontend\src\components\UploadSection.css    | PostCSS          |        209 |         18 |         38 |        265 |
+| c:\Users\oshoupadhyay\PROJECTS\MY-PROJECTs\hireready\frontend\src\components\UploadSection.jsx    | JavaScript JSX   |        183 |         13 |         20 |        216 |
+| c:\Users\oshoupadhyay\PROJECTS\MY-PROJECTs\hireready\frontend\src\index.css                       | PostCSS          |        239 |         42 |         41 |        322 |
+| c:\Users\oshoupadhyay\PROJECTS\MY-PROJECTs\hireready\frontend\src\main.jsx                        | JavaScript JSX   |          9 |          0 |          2 |         11 |
+| c:\Users\oshoupadhyay\PROJECTS\MY-PROJECTs\hireready\frontend\vercel.json                         | JSON             |          5 |          0 |          1 |          6 |
+| c:\Users\oshoupadhyay\PROJECTS\MY-PROJECTs\hireready\frontend\vite.config.js                      | JavaScript       |         12 |          3 |          2 |         17 |
+| c:\Users\oshoupadhyay\PROJECTS\MY-PROJECTs\hireready\render.yaml                                  | YAML             |         13 |          2 |          1 |         16 |
+| Total                                                                                             |                  |      7,857 |      1,005 |        970 |      9,832 |
++---------------------------------------------------------------------------------------------------+------------------+------------+------------+------------+------------+

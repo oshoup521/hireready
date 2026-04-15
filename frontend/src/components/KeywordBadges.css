@@ -79,3 +79,30 @@
   color: var(--text-secondary);
   font-style: italic;
 }
+
+/* Action slot in group header (e.g. "Copy all" button) */
+.badge-group-action {
+  margin-left: auto;
+}
+
+.copy-missing-btn {
+  background: transparent;
+  border: 1px solid var(--danger);
+  color: var(--danger);
+  font-size: 0.72rem;
+  font-weight: 600;
+  padding: 0.2rem 0.6rem;
+  border-radius: 6px;
+  cursor: pointer;
+  transition: background 0.15s, color 0.15s;
+}
+
+.copy-missing-btn:hover {
+  background: color-mix(in srgb, var(--danger) 12%, transparent);
+}
+
+.copy-missing-btn--copied {
+  color: var(--success);
+  border-color: var(--success);
+  background: color-mix(in srgb, var(--success) 10%, transparent);
+}

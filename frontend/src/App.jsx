@@ -23,6 +23,8 @@ export default function App() {
   const [theme, setTheme] = useState('dark')
   // Incrementing this key forces UploadSection to remount and reset its local state
   const [uploadKey, setUploadKey] = useState(0)
+  // Incrementing this key forces the split-layout to remount, replaying the fade-in-up
+  const [reportKey, setReportKey] = useState(0)
   const [history, setHistory] = useState(() => loadHistory())
   const [compareMode, setCompareMode] = useState(false)
   const [viewerCollapsed, setViewerCollapsed] = useState(
@@ -54,8 +56,8 @@ export default function App() {
     window.scrollTo({ top: 0, behavior: 'smooth' })
   }
 
-  // Submit resume (and optionally JD) to the backend and receive the score report
-  async function analyzeResume(resumeFile, jdFile = null) {
+  // Submit resume (and optionally JD/cover letter) to the backend
+  async function analyzeResume(resumeFile, jdFile = null, coverLetterFile = null, role = null, atsPreset = null) {
     setIsLoading(true)
     setIsWakingUp(false)
     setError(null)
@@ -73,6 +75,9 @@ export default function App() {
       formData.append('resume', resumeFile)
       // Only append jd when provided (null = ATS-only mode)
       if (jdFile) formData.append('jd', jdFile)
+      if (coverLetterFile) formData.append('cover_letter', coverLetterFile)
+      if (role) formData.append('role', role)
+      if (atsPreset) formData.append('ats_preset', atsPreset)
 
       const response = await fetch(`${API_URL}/analyze`, {
         method: 'POST',
@@ -128,8 +133,20 @@ export default function App() {
         <ScoreHistory
           entries={history}
           onRestore={(savedReport) => {
-            setReport(savedReport)
-            window.scrollTo({ top: 0, behavior: 'smooth' })
+            // Step 1 — snap viewport to top and clear any existing report.
+            //   This puts the upload section back in its "centered" state
+            //   so the slide-up transition has a visible starting point.
+            window.scrollTo(0, 0)
+            setReport(null)
+
+            // Step 2 — in the next animation frame React has already painted
+            //   the "no-report / upload-centered" state.  Setting the report
+            //   now triggers the --has-report class change and the 0.55s
+            //   slide-up CSS transition plays exactly as it does after analyze.
+            requestAnimationFrame(() => {
+              setReport(savedReport)
+              setReportKey((k) => k + 1)
+            })
           }}
           onDelete={(id) => setHistory(deleteHistoryEntry(id))}
           onClear={() => {
@@ -141,7 +158,7 @@ export default function App() {
       )}
 
       {!compareMode && report && (
-        <div className={`split-layout fade-in-up${viewerCollapsed ? ' split-layout--viewer-hidden' : ''}`}>
+        <div key={reportKey} className={`split-layout fade-in-up${viewerCollapsed ? ' split-layout--viewer-hidden' : ''}`}>
           <div className="split-left">
             <ResumeTextViewer
               report={report}

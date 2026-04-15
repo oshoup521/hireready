@@ -15,7 +15,7 @@ Routes:
 
 import os
 from typing import List, Optional
-from fastapi import FastAPI, File, UploadFile, HTTPException
+from fastapi import FastAPI, File, Form, UploadFile, HTTPException
 from fastapi.middleware.cors import CORSMiddleware
 from dotenv import load_dotenv
 
@@ -74,6 +74,9 @@ async def health_check():
 async def analyze_resume(
     resume: UploadFile = File(...),
     jd: Optional[UploadFile] = None,
+    cover_letter: Optional[UploadFile] = None,
+    role: Optional[str] = Form(None),
+    ats_preset: Optional[str] = Form(None),
 ):
     """
     Analyse a resume and return a scoring report.
@@ -108,11 +111,26 @@ async def analyze_resume(
             detail="Could not extract text from resume. Please ensure the file is a valid PDF or DOCX.",
         )
 
-    # Step 3 — Run NLP scoring (mode depends on whether a JD was uploaded)
+    # Step 3 — Parse optional cover letter
+    cover_letter_text = None
+    if cover_letter is not None:
+        try:
+            cl_bytes = await cover_letter.read()
+            cover_letter_text = extract_text(cl_bytes, cover_letter.filename or "cover_letter.pdf")
+        except Exception:
+            cover_letter_text = None  # Non-fatal — proceed without it
+
+    # Normalise role / ats_preset values
+    valid_roles = {"software_engineer", "product_manager", "data_scientist"}
+    valid_presets = {"greenhouse", "workday", "lever"}
+    role_norm = role.lower().replace(" ", "_") if role and role.lower().replace(" ", "_") in valid_roles else None
+    preset_norm = ats_preset.lower() if ats_preset and ats_preset.lower() in valid_presets else None
+
+    # Step 4 — Run NLP scoring (mode depends on whether a JD was uploaded)
     try:
         if jd is None:
             # ATS-only mode: score resume on its own merits
-            result = score_resume_only(resume_text)
+            result = score_resume_only(resume_text, role=role_norm, ats_preset=preset_norm)
             result["resume_text"] = resume_text[:6000]
             result["jd_text"] = ""
         else:
@@ -127,7 +145,7 @@ async def analyze_resume(
                     status_code=422,
                     detail="Could not extract text from job description. Please ensure the file is a valid PDF or DOCX.",
                 )
-            result = score_resume(resume_text, jd_text)
+            result = score_resume(resume_text, jd_text, role=role_norm, ats_preset=preset_norm, cover_letter_text=cover_letter_text)
             result["resume_text"] = resume_text[:6000]
             result["jd_text"] = jd_text[:4000]
     except HTTPException:

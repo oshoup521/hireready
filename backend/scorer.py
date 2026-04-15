@@ -130,6 +130,106 @@ _SPELL_WHITELIST = {
     "zendesk", "intercom", "stripe", "twilio", "sendgrid",
 }
 
+# ---------------------------------------------------------------------------
+# Buzzword vocabulary — overused resume filler words to flag
+# ---------------------------------------------------------------------------
+BUZZWORDS = {
+    "synergy", "synergize", "synergistic", "synergies",
+    "passionate", "passion",
+    "hardworking", "hard-working",
+    "team player",
+    "go-getter", "go getter",
+    "self-starter", "self starter",
+    "detail-oriented", "detail oriented",
+    "results-driven", "results driven",
+    "dynamic",
+    "innovative", "innovation",
+    "proactive",
+    "leverage", "leveraging",
+    "paradigm", "paradigm shift",
+    "bandwidth",
+    "move the needle",
+    "low-hanging fruit", "low hanging fruit",
+    "circle back",
+    "value-add", "value add",
+    "thought leader", "thought leadership",
+    "game-changer", "game changer",
+    "disruptive", "disrupting",
+    "holistic",
+    "ecosystem",
+    "agnostic",
+    "impactful",
+    "best-in-class", "best in class",
+    "forward-thinking", "forward thinking",
+    "cutting-edge", "cutting edge",
+    "world-class", "world class",
+    "out of the box", "outside the box",
+    "at the end of the day",
+    "in a fast-paced environment",
+    "excellent communication skills",
+    "results-oriented", "results oriented",
+    "highly motivated", "driven individual",
+    "rockstar", "ninja", "guru", "wizard",
+}
+
+# ---------------------------------------------------------------------------
+# Role-specific scoring weights
+# ---------------------------------------------------------------------------
+ROLE_WEIGHTS = {
+    "software_engineer": {
+        "keyword": 0.35,
+        "skills":  0.30,
+        "experience": 0.25,
+        "education": 0.10,
+    },
+    "product_manager": {
+        "keyword": 0.30,
+        "skills":  0.20,
+        "experience": 0.35,
+        "education": 0.15,
+    },
+    "data_scientist": {
+        "keyword": 0.30,
+        "skills":  0.35,
+        "experience": 0.20,
+        "education": 0.15,
+    },
+    "default": {
+        "keyword": 0.40,
+        "skills":  0.25,
+        "experience": 0.20,
+        "education": 0.15,
+    },
+}
+
+# ---------------------------------------------------------------------------
+# ATS preset score multipliers
+# Each preset nudges sub-scores to reflect what that ATS system emphasises
+# ---------------------------------------------------------------------------
+ATS_PRESETS = {
+    "greenhouse": {
+        # Greenhouse: very keyword-centric
+        "keyword_boost": 1.15,
+        "formatting_boost": 1.0,
+        "skills_boost": 1.0,
+        "label": "Greenhouse",
+    },
+    "workday": {
+        # Workday: strict on section structure and formatting
+        "keyword_boost": 1.0,
+        "formatting_boost": 1.20,
+        "skills_boost": 1.0,
+        "label": "Workday",
+    },
+    "lever": {
+        # Lever: skills/experience oriented, lenient on keywords
+        "keyword_boost": 0.90,
+        "formatting_boost": 0.90,
+        "skills_boost": 1.25,
+        "label": "Lever",
+    },
+}
+
 # Passive voice auxiliary verbs
 _PASSIVE_AUX = re.compile(
     r"\b(was|were|been|being|is|are|am)\s+\w+ed\b", re.IGNORECASE
@@ -698,6 +798,59 @@ def check_grammar(resume_text: str) -> dict:
     }
 
 
+def compute_readability(text: str) -> int:
+    """
+    Compute a Flesch Reading Ease score (0-100) for the given text.
+
+    Higher scores = easier to read (plain language).
+    Scores 60-70 = standard/plain English.
+    Resumes should target 60+; below 40 = overly complex.
+
+    Formula:
+        206.835 - 1.015 * (words / sentences) - 84.6 * (syllables / words)
+
+    Returns the score clamped to [0, 100].
+    """
+    sentences = re.split(r"[.!?]+", text)
+    sentences = [s.strip() for s in sentences if len(s.strip()) > 3]
+    sentence_count = max(1, len(sentences))
+
+    words = re.findall(r"\b[a-zA-Z]+\b", text)
+    word_count = max(1, len(words))
+
+    # Count syllables via a simple vowel-cluster heuristic
+    def count_syllables(word: str) -> int:
+        word = word.lower()
+        vowels = re.findall(r"[aeiouy]+", word)
+        count = len(vowels)
+        if word.endswith("e") and count > 1:
+            count -= 1
+        return max(1, count)
+
+    syllable_count = sum(count_syllables(w) for w in words)
+
+    score = 206.835 - 1.015 * (word_count / sentence_count) - 84.6 * (syllable_count / word_count)
+    return max(0, min(100, round(score)))
+
+
+def detect_buzzwords(text: str) -> list[str]:
+    """
+    Scan resume text for overused buzzwords and clichés.
+
+    Checks against a hardcoded list of vague, overused, or meaningless
+    resume phrases that hiring managers and ATS systems flag negatively.
+
+    Returns:
+        Sorted list of buzzwords/phrases found in the text (lowercased).
+    """
+    text_lower = text.lower()
+    found: list[str] = []
+    for buzz in BUZZWORDS:
+        if buzz in text_lower:
+            found.append(buzz)
+    return sorted(found)
+
+
 def extract_keywords(text: str) -> list[str]:
     """
     Extract meaningful keywords from text using spaCy NLP.
@@ -778,7 +931,7 @@ def extract_keywords(text: str) -> list[str]:
     return keywords
 
 
-def score_resume(resume_text: str, jd_text: str) -> dict:
+def score_resume(resume_text: str, jd_text: str, role: str = None, ats_preset: str = None, cover_letter_text: str = None) -> dict:
     """
     Core scoring function — compares a resume against a job description.
 
@@ -860,13 +1013,20 @@ def score_resume(resume_text: str, jd_text: str) -> dict:
         education_score = 0
 
     # ------------------------------------------------------------------
-    # 6. overall_score (weighted average)
+    # 6. overall_score (weighted average — role-adjusted)
     # ------------------------------------------------------------------
+    weights = ROLE_WEIGHTS.get(role or "default", ROLE_WEIGHTS["default"])
+
+    # Apply ATS preset keyword / skills boost before weighting
+    preset = ATS_PRESETS.get(ats_preset or "", None)
+    eff_keyword = min(100, round(keyword_match_score * (preset["keyword_boost"] if preset else 1.0)))
+    eff_skills  = min(100, round(skills_score * (preset["skills_boost"] if preset else 1.0)))
+
     overall_score = round(
-        keyword_match_score * 0.40
-        + skills_score * 0.25
-        + experience_score * 0.20
-        + education_score * 0.15
+        eff_keyword       * weights["keyword"]
+        + eff_skills      * weights["skills"]
+        + experience_score * weights["experience"]
+        + education_score  * weights["education"]
     )
 
     # ------------------------------------------------------------------
@@ -970,7 +1130,32 @@ def score_resume(resume_text: str, jd_text: str) -> dict:
     rewrites = generate_rewrite_suggestions(resume_text)
 
     # ------------------------------------------------------------------
-    # 15. Word counts
+    # 15. Readability score (Flesch Reading Ease)
+    # ------------------------------------------------------------------
+    readability_score = compute_readability(resume_text)
+
+    # ------------------------------------------------------------------
+    # 16. Buzzword detection
+    # ------------------------------------------------------------------
+    buzzwords_found = detect_buzzwords(resume_text)
+
+    # ------------------------------------------------------------------
+    # 17. Cover letter analysis (optional)
+    # ------------------------------------------------------------------
+    cover_letter_score = None
+    cover_letter_matched = []
+    cover_letter_missing = []
+    if cover_letter_text:
+        cl_keywords = set(extract_keywords(cover_letter_text))
+        cl_matched = sorted(cl_keywords & jd_kw_set)
+        cl_missing = sorted(jd_kw_set - cl_keywords)
+        cl_score = min(100, round(len(cl_matched) / max(1, len(jd_kw_set)) * 100))
+        cover_letter_score = cl_score
+        cover_letter_matched = cl_matched
+        cover_letter_missing = cl_missing
+
+    # ------------------------------------------------------------------
+    # 18. Word counts
     # ------------------------------------------------------------------
     resume_word_count = len(resume_text.split())
     jd_word_count = len(jd_text.split())
@@ -980,6 +1165,8 @@ def score_resume(resume_text: str, jd_text: str) -> dict:
     # ------------------------------------------------------------------
     return {
         "mode": "ats_vs_jd",
+        "role": role or "default",
+        "ats_preset": ats_preset or None,
         "overall_score": overall_score,
         "keyword_match_score": keyword_match_score,
         "skills_score": skills_score,
@@ -999,6 +1186,11 @@ def score_resume(resume_text: str, jd_text: str) -> dict:
         "job_title_match": title["job_title_match"],
         "title_relevance_score": title["title_relevance_score"],
         "rewrite_suggestions": rewrites,
+        "readability_score": readability_score,
+        "buzzwords_found": buzzwords_found,
+        "cover_letter_score": cover_letter_score,
+        "cover_letter_matched": cover_letter_matched,
+        "cover_letter_missing": cover_letter_missing[:10],
         "matched_keywords": matched_keywords,
         "missing_keywords": missing_keywords,
         "extra_keywords": extra_keywords,
@@ -1010,7 +1202,7 @@ def score_resume(resume_text: str, jd_text: str) -> dict:
     }
 
 
-def score_resume_only(resume_text: str) -> dict:
+def score_resume_only(resume_text: str, role: str = None, ats_preset: str = None) -> dict:
     """
     Score a resume for general ATS readiness without a job description.
 
@@ -1077,12 +1269,17 @@ def score_resume_only(resume_text: str) -> dict:
 
     # ------------------------------------------------------------------
     # 6. overall_score — weighted average (no keyword_match component)
+    # Apply ATS preset skills boost if provided
     # ------------------------------------------------------------------
+    preset = ATS_PRESETS.get(ats_preset or "", None)
+    eff_skills = min(100, round(skills_score * (preset["skills_boost"] if preset else 1.0)))
+    eff_fmt_boost = preset["formatting_boost"] if preset else 1.0
+
     overall_score = round(
-        skills_score * 0.40
+        eff_skills    * 0.40
         + experience_score * 0.30
-        + education_score * 0.20
-        + sections_score * 0.10
+        + education_score  * 0.20
+        + sections_score   * 0.10
     )
 
     # ------------------------------------------------------------------
@@ -1163,10 +1360,22 @@ def score_resume_only(resume_text: str) -> dict:
     rewrites = generate_rewrite_suggestions(resume_text)
 
     # ------------------------------------------------------------------
+    # 13. Readability score
+    # ------------------------------------------------------------------
+    readability_score = compute_readability(resume_text)
+
+    # ------------------------------------------------------------------
+    # 14. Buzzword detection
+    # ------------------------------------------------------------------
+    buzzwords_found = detect_buzzwords(resume_text)
+
+    # ------------------------------------------------------------------
     # Return the result dict (compatible with ReportCard schema)
     # ------------------------------------------------------------------
     return {
         "mode": "resume_only",
+        "role": role or "default",
+        "ats_preset": ats_preset or None,
         "overall_score": overall_score,
         "keyword_match_score": 0,
         "skills_score": skills_score,
@@ -1186,6 +1395,11 @@ def score_resume_only(resume_text: str) -> dict:
         "job_title_match": False,
         "title_relevance_score": None,   # not applicable in ATS-only mode
         "rewrite_suggestions": rewrites,
+        "readability_score": readability_score,
+        "buzzwords_found": buzzwords_found,
+        "cover_letter_score": None,
+        "cover_letter_matched": [],
+        "cover_letter_missing": [],
         "matched_keywords": [],
         "missing_keywords": [],
         "extra_keywords": resume_keywords[:50],  # Top 50 resume keywords

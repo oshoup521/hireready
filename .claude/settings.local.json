@@ -2,7 +2,11 @@
   "permissions": {
     "allow": [
       "Bash(python generate_samples.py)",
-      "Bash(npm install *)"
+      "Bash(npm install *)",
+      "Bash(npm run *)",
+      "Bash(python -c \"import scorer; print\\('scorer OK'\\)\")",
+      "Bash(.venv/Scripts/python -c \"import scorer; print\\('scorer OK'\\)\")",
+      "Bash(.venv/Scripts/python -c \"import main; print\\('main OK'\\)\")"
     ]
   }
 }

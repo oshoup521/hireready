@@ -5,11 +5,17 @@ export default function UploadSection({ onAnalyze, onReset, hasReport, isLoading
   const [mode, setMode] = useState('ats_vs_jd')
   const [resumeFile, setResumeFile] = useState(null)
   const [jdFile, setJdFile] = useState(null)
+  const [coverLetterFile, setCoverLetterFile] = useState(null)
+  const [showCoverLetter, setShowCoverLetter] = useState(false)
+  const [role, setRole] = useState('')
+  const [atsPreset, setAtsPreset] = useState('')
   const [resumeDragOver, setResumeDragOver] = useState(false)
   const [jdDragOver, setJdDragOver] = useState(false)
+  const [clDragOver, setClDragOver] = useState(false)
 
   const resumeInputRef = useRef(null)
   const jdInputRef = useRef(null)
+  const clInputRef = useRef(null)
 
   function handleModeChange(newMode) {
     setMode(newMode)
@@ -44,25 +50,40 @@ export default function UploadSection({ onAnalyze, onReset, hasReport, isLoading
 
   function handleAnalyze() {
     if (!resumeFile) return
-    onAnalyze(resumeFile, mode === 'ats_vs_jd' ? jdFile : null)
+    onAnalyze(
+      resumeFile,
+      mode === 'ats_vs_jd' ? jdFile : null,
+      showCoverLetter ? coverLetterFile : null,
+      role || null,
+      atsPreset || null,
+    )
   }
 
-  // Load bundled sample files from /public and auto-fill the drop zones
+  // Load bundled sample files from /public and auto-fill the drop zones.
+  // Respects the current mode: in ats_only, only the resume is loaded.
   async function handleTrySample() {
     try {
-      const [resumeRes, jdRes] = await Promise.all([
-        fetch('/sample-resume.pdf'),
-        fetch('/sample-jd.pdf'),
-      ])
-      const [resumeBlob, jdBlob] = await Promise.all([resumeRes.blob(), jdRes.blob()])
-      const resume = new File([resumeBlob], 'sample-resume.pdf', { type: 'application/pdf' })
-      const jd     = new File([jdBlob],     'sample-jd.pdf',     { type: 'application/pdf' })
-      setMode('ats_vs_jd')
-      setResumeFile(resume)
-      setJdFile(jd)
+      if (mode === 'ats_vs_jd') {
+        const [resumeRes, jdRes] = await Promise.all([
+          fetch('/sample-resume.pdf'),
+          fetch('/sample-jd.pdf'),
+        ])
+        const [resumeBlob, jdBlob] = await Promise.all([resumeRes.blob(), jdRes.blob()])
+        setResumeFile(new File([resumeBlob], 'sample-resume.pdf', { type: 'application/pdf' }))
+        setJdFile(new File([jdBlob], 'sample-jd.pdf', { type: 'application/pdf' }))
+      } else {
+        const resumeRes  = await fetch('/sample-resume.pdf')
+        const resumeBlob = await resumeRes.blob()
+        setResumeFile(new File([resumeBlob], 'sample-resume.pdf', { type: 'application/pdf' }))
+      }
     } catch {
       // Silent fail — user can still upload manually
     }
+  }
+
+  function handleClearCoverLetter() {
+    setCoverLetterFile(null)
+    setShowCoverLetter(false)
   }
 
   const canAnalyze = !!resumeFile && (mode === 'ats_only' || !!jdFile) && !isLoading
@@ -154,12 +175,82 @@ export default function UploadSection({ onAnalyze, onReset, hasReport, isLoading
         </button>
       </div>
 
+      {/* Advanced options row: role + ATS preset + cover letter toggle */}
+      <div className="advanced-options">
+        {/* Role selector */}
+        <div className="adv-field">
+          <label className="adv-label" htmlFor="role-select">Role</label>
+          <select
+            id="role-select"
+            className="adv-select"
+            value={role}
+            onChange={(e) => setRole(e.target.value)}
+          >
+            <option value="">General</option>
+            <option value="software_engineer">Software Engineer</option>
+            <option value="product_manager">Product Manager</option>
+            <option value="data_scientist">Data Scientist</option>
+          </select>
+        </div>
+
+        {/* ATS preset selector */}
+        <div className="adv-field">
+          <label className="adv-label" htmlFor="ats-select">ATS System</label>
+          <select
+            id="ats-select"
+            className="adv-select"
+            value={atsPreset}
+            onChange={(e) => setAtsPreset(e.target.value)}
+          >
+            <option value="">Standard</option>
+            <option value="greenhouse">Greenhouse</option>
+            <option value="workday">Workday</option>
+            <option value="lever">Lever</option>
+          </select>
+        </div>
+
+        {/* Cover letter toggle */}
+        {mode === 'ats_vs_jd' && (
+          <button
+            className={`adv-toggle ${showCoverLetter ? 'adv-toggle--active' : ''}`}
+            type="button"
+            onClick={() => setShowCoverLetter((s) => !s)}
+          >
+            📝 Cover Letter
+          </button>
+        )}
+      </div>
+
+      {/* Cover letter drop zone */}
+      {showCoverLetter && mode === 'ats_vs_jd' && (
+        <div className="cover-letter-row">
+          <DropZone
+            inputRef={clInputRef}
+            file={coverLetterFile}
+            isDragOver={clDragOver}
+            label="Cover Letter (PDF or DOCX)"
+            icon="📝"
+            ariaLabel="Upload cover letter PDF or DOCX"
+            onChange={handleFileChange(setCoverLetterFile)}
+            onDrop={handleDrop(setCoverLetterFile, setClDragOver)}
+            onDragOver={(e) => { e.preventDefault(); setClDragOver(true) }}
+            onDragLeave={() => setClDragOver(false)}
+            onClick={() => clInputRef.current?.click()}
+          />
+          {coverLetterFile && (
+            <button className="cl-clear-btn" type="button" onClick={handleClearCoverLetter} title="Remove cover letter">
+              ×
+            </button>
+          )}
+        </div>
+      )}
+
       {/* Sample files shortcut — hide once files are selected */}
       {!resumeFile && !jdFile && (
         <div className="sample-hint">
           No files yet?{' '}
           <button className="sample-link" onClick={handleTrySample} type="button">
-            Try with sample resume & JD
+            {mode === 'ats_vs_jd' ? 'Try with sample resume & JD' : 'Try with sample resume'}
           </button>
         </div>
       )}

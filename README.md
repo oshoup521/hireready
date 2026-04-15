@@ -148,6 +148,26 @@
 </tr>
 </table>
 
+### 🆕 New Features (v2)
+
+<table>
+<thead><tr bgcolor="#1f2937"><th></th><th>Feature</th><th>What it does</th></tr></thead>
+<tbody>
+<tr bgcolor="#161b22"><td>🎊</td><td><b>Confetti Animation</b></td><td>Celebration burst when your score hits 75+</td></tr>
+<tr bgcolor="#0d1117"><td>🎴</td><td><b>Score Share Card</b></td><td>Spotify Wrapped-style card — download as PNG to share</td></tr>
+<tr bgcolor="#161b22"><td>📈</td><td><b>Score Trend Chart</b></td><td>Line graph in history showing progress across runs</td></tr>
+<tr bgcolor="#0d1117"><td>✅</td><td><b>Applied Tag</b></td><td>Mark each history entry as "Applied" — persisted in localStorage</td></tr>
+<tr bgcolor="#161b22"><td>👑</td><td><b>Best Score Badge</b></td><td>Crown icon on your highest-scoring history entry</td></tr>
+<tr bgcolor="#0d1117"><td>⬇️</td><td><b>Export History CSV</b></td><td>Download all past runs as a spreadsheet</td></tr>
+<tr bgcolor="#161b22"><td>📝</td><td><b>Cover Letter Analyzer</b></td><td>Upload your cover letter alongside resume — JD match score shown</td></tr>
+<tr bgcolor="#0d1117"><td>👤</td><td><b>Role-Specific Scoring</b></td><td>Adjust score weights for Software Engineer / PM / Data Scientist</td></tr>
+<tr bgcolor="#161b22"><td>🏢</td><td><b>ATS System Presets</b></td><td>Greenhouse, Workday, Lever — each applies its own scoring rules</td></tr>
+<tr bgcolor="#0d1117"><td>⎘</td><td><b>Copy All Missing Keywords</b></td><td>One-click copy of every missing keyword to clipboard</td></tr>
+<tr bgcolor="#161b22"><td>📖</td><td><b>Readability Score</b></td><td>Flesch Reading Ease — flags overly complex resume language</td></tr>
+<tr bgcolor="#0d1117"><td>🚩</td><td><b>Buzzword Detector</b></td><td>Flags overused clichés ("synergy", "passionate", "rockstar"…)</td></tr>
+</tbody>
+</table>
+
 ---
 
 ## 🛠️ Tech Stack

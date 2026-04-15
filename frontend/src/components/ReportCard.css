@@ -235,6 +235,134 @@
   color: var(--text-primary);
 }
 
+/* ── Confetti ── */
+.confetti-wrapper {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  pointer-events: none;
+  overflow: hidden;
+  z-index: 9999;
+}
+
+.confetti-piece {
+  position: absolute;
+  top: -16px;           /* start just above viewport */
+  animation: confettiFall linear forwards;
+}
+
+@keyframes confettiFall {
+  0% {
+    transform: translateY(0px) translateX(0px) rotate(0deg);
+    opacity: 1;
+  }
+  25% {
+    transform: translateY(25vh) translateX(calc(var(--drift) * 0.25)) rotate(180deg);
+    opacity: 1;
+  }
+  50% {
+    transform: translateY(50vh) translateX(calc(var(--drift) * 0.5)) rotate(360deg);
+    opacity: 1;
+  }
+  75% {
+    transform: translateY(75vh) translateX(calc(var(--drift) * 0.75)) rotate(540deg);
+    opacity: 1;
+  }
+  90% { opacity: 1; }
+  100% {
+    transform: translateY(110vh) translateX(var(--drift)) rotate(720deg);
+    opacity: 0;
+  }
+}
+
+/* ── Share score button (below score ring) ── */
+.share-score-btn {
+  margin-top: 1rem;
+  background: transparent;
+  border: 1px solid var(--accent);
+  color: var(--accent-light);
+  font-size: 0.8rem;
+  font-weight: 600;
+  padding: 0.4rem 1.1rem;
+  border-radius: 20px;
+  cursor: pointer;
+  transition: background 0.15s, color 0.15s;
+}
+
+.share-score-btn:hover {
+  background: var(--accent);
+  color: #fff;
+}
+
+/* ── Readability hint ── */
+.readability-hint {
+  font-size: 0.78rem;
+  color: var(--text-secondary);
+  margin-top: 0.4rem;
+  margin-bottom: 0.75rem;
+}
+
+/* ── Buzzword section ── */
+.buzzword-section {
+  margin-top: 0.75rem;
+}
+
+.buzzword-header {
+  display: flex;
+  align-items: center;
+  gap: 0.4rem;
+  margin-bottom: 0.4rem;
+}
+
+.buzzword-icon {
+  font-size: 0.9rem;
+}
+
+.buzzword-title {
+  font-size: 0.85rem;
+  font-weight: 600;
+  color: var(--warning);
+}
+
+.buzzword-desc {
+  font-size: 0.78rem;
+  color: var(--text-secondary);
+  margin-bottom: 0.6rem;
+  line-height: 1.5;
+}
+
+.buzzword-list {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.4rem;
+}
+
+.buzzword-badge {
+  background: color-mix(in srgb, var(--warning) 12%, transparent);
+  color: var(--warning);
+  border: 1px solid color-mix(in srgb, var(--warning) 30%, transparent);
+  font-size: 0.72rem;
+  font-weight: 500;
+  padding: 0.2rem 0.5rem;
+  border-radius: 999px;
+}
+
+/* ── Cover letter hints ── */
+.cl-hint {
+  font-size: 0.78rem;
+  margin-top: 0.35rem;
+}
+
+.cl-hint--matched {
+  color: var(--success);
+}
+
+.cl-hint--missing {
+  color: var(--danger);
+}
+
 /* Stack sections columns on small screens */
 @media (max-width: 480px) {
   .sections-grid {
