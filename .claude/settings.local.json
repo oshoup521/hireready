@@ -1,7 +1,8 @@
 {
   "permissions": {
     "allow": [
-      "Bash(python generate_samples.py)"
+      "Bash(python generate_samples.py)",
+      "Bash(npm install *)"
     ]
   }
 }

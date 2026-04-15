@@ -48,26 +48,32 @@
 
 ### 🧠 Core Scoring Engine
 
-| | Feature | What it does |
-|---|---|---|
-| 🏆 | **Overall ATS Score** | Weighted 0–100 score combining all sub-scores |
-| 🔑 | **Keyword Match** | Resume vs JD keyword intersection via spaCy NLP |
-| 🛠️ | **Skills Score** | How many JD-required skills appear in your resume |
-| 💼 | **Experience Score** | Action verbs, quantified achievements, experience keywords |
-| 🎓 | **Education Score** | Degree, university, and qualification detection |
+<table>
+<thead><tr bgcolor="#1f2937"><th></th><th>Feature</th><th>What it does</th></tr></thead>
+<tbody>
+<tr bgcolor="#161b22"><td>🏆</td><td><b>Overall ATS Score</b></td><td>Weighted 0–100 score combining all sub-scores</td></tr>
+<tr bgcolor="#0d1117"><td>🔑</td><td><b>Keyword Match</b></td><td>Resume vs JD keyword intersection via spaCy NLP</td></tr>
+<tr bgcolor="#161b22"><td>🛠️</td><td><b>Skills Score</b></td><td>How many JD-required skills appear in your resume</td></tr>
+<tr bgcolor="#0d1117"><td>💼</td><td><b>Experience Score</b></td><td>Action verbs, quantified achievements, experience keywords</td></tr>
+<tr bgcolor="#161b22"><td>🎓</td><td><b>Education Score</b></td><td>Degree, university, and qualification detection</td></tr>
+</tbody>
+</table>
 
 </td>
 <td width="50%" valign="top" style="border:1px solid #30363d; border-radius:8px; padding:16px;">
 
 ### 📊 Quality Metrics
 
-| | Feature | What it does |
-|---|---|---|
-| 🤖 | **ATS Formatting** | Flags tables, columns, images, headers that break parsers |
-| ✍️ | **Grammar & Spelling** | Offline error detection — no external API |
-| ⚡ | **Action Verb Analysis** | Strong (Led, Built) vs weak (Helped, Responsible for) |
-| 📈 | **Quantification Score** | Detects metric-backed achievements ("sales up 30%") |
-| 🎯 | **Job Title Relevance** | Matches your titles to JD seniority and role |
+<table>
+<thead><tr bgcolor="#1f2937"><th></th><th>Feature</th><th>What it does</th></tr></thead>
+<tbody>
+<tr bgcolor="#161b22"><td>🤖</td><td><b>ATS Formatting</b></td><td>Flags tables, columns, images, headers that break parsers</td></tr>
+<tr bgcolor="#0d1117"><td>✍️</td><td><b>Grammar & Spelling</b></td><td>Offline error detection — no external API</td></tr>
+<tr bgcolor="#161b22"><td>⚡</td><td><b>Action Verb Analysis</b></td><td>Strong (Led, Built) vs weak (Helped, Responsible for)</td></tr>
+<tr bgcolor="#0d1117"><td>📈</td><td><b>Quantification Score</b></td><td>Detects metric-backed achievements ("sales up 30%")</td></tr>
+<tr bgcolor="#161b22"><td>🎯</td><td><b>Job Title Relevance</b></td><td>Matches your titles to JD seniority and role</td></tr>
+</tbody>
+</table>
 
 </td>
 </tr>
@@ -76,23 +82,29 @@
 
 ### 🔍 Keyword Intelligence
 
-| | Feature | What it does |
-|---|---|---|
-| ✅ | **Matched Keywords** | Keywords present in both resume and JD |
-| ❌ | **Missing Keywords** | JD keywords absent from resume — most actionable |
-| ➕ | **Extra Keywords** | Resume keywords beyond the JD scope |
-| 📋 | **Section Audit** | Finds and flags missing resume sections |
+<table>
+<thead><tr bgcolor="#1f2937"><th></th><th>Feature</th><th>What it does</th></tr></thead>
+<tbody>
+<tr bgcolor="#161b22"><td>✅</td><td><b>Matched Keywords</b></td><td>Keywords present in both resume and JD</td></tr>
+<tr bgcolor="#0d1117"><td>❌</td><td><b>Missing Keywords</b></td><td>JD keywords absent from resume — most actionable</td></tr>
+<tr bgcolor="#161b22"><td>➕</td><td><b>Extra Keywords</b></td><td>Resume keywords beyond the JD scope</td></tr>
+<tr bgcolor="#0d1117"><td>📋</td><td><b>Section Audit</b></td><td>Finds and flags missing resume sections</td></tr>
+</tbody>
+</table>
 
 </td>
 <td width="50%" valign="top" style="border:1px solid #30363d; border-radius:8px; padding:16px;">
 
 ### 💡 Suggestions & Rewrites
 
-| | Feature | What it does |
-|---|---|---|
-| 🗒️ | **Improvement Tips** | Actionable suggestions based on score gaps |
-| ✏️ | **Bullet Rewrites** | Weak bullets rewritten with action verb + metric |
-| 📋 | **Copy to Clipboard** | One-click copy on every suggestion and rewrite |
+<table>
+<thead><tr bgcolor="#1f2937"><th></th><th>Feature</th><th>What it does</th></tr></thead>
+<tbody>
+<tr bgcolor="#161b22"><td>🗒️</td><td><b>Improvement Tips</b></td><td>Actionable suggestions based on score gaps</td></tr>
+<tr bgcolor="#0d1117"><td>✏️</td><td><b>Bullet Rewrites</b></td><td>Weak bullets rewritten with action verb + metric</td></tr>
+<tr bgcolor="#161b22"><td>📋</td><td><b>Copy to Clipboard</b></td><td>One-click copy on every suggestion and rewrite</td></tr>
+</tbody>
+</table>
 
 </td>
 </tr>
@@ -101,30 +113,36 @@
 
 ### 🖥️ UI & Experience
 
-| | Feature | What it does |
-|---|---|---|
-| 🔀 | **Two Modes** | ATS-only check or full ATS vs JD comparison |
-| 🔵 | **Score Ring** | Animated SVG ring — 🔴 red / 🟠 orange / 🟢 green |
-| 📄 | **Resume Text Viewer** | Extracted text with keyword & verb highlights |
-| 📌 | **Sticky Split Layout** | Left panel sticks; right panel scrolls freely |
-| ⚖️ | **Multi-JD Compare** | One resume vs up to 3 JDs side by side |
-| 🧪 | **Sample Files** | Test instantly without uploading your own files |
-| 🔄 | **Re-Analyze Button** | Swap resume without refreshing the page |
-| 📥 | **Download as PDF** | Print-to-PDF — only the report card is exported |
+<table>
+<thead><tr bgcolor="#1f2937"><th></th><th>Feature</th><th>What it does</th></tr></thead>
+<tbody>
+<tr bgcolor="#161b22"><td>🔀</td><td><b>Two Modes</b></td><td>ATS-only check or full ATS vs JD comparison</td></tr>
+<tr bgcolor="#0d1117"><td>🔵</td><td><b>Score Ring</b></td><td>Animated SVG ring — 🔴 red / 🟠 orange / 🟢 green</td></tr>
+<tr bgcolor="#161b22"><td>📄</td><td><b>Resume Text Viewer</b></td><td>Extracted text with keyword &amp; verb highlights</td></tr>
+<tr bgcolor="#0d1117"><td>📌</td><td><b>Sticky Split Layout</b></td><td>Left panel sticks; right panel scrolls freely</td></tr>
+<tr bgcolor="#161b22"><td>⚖️</td><td><b>Multi-JD Compare</b></td><td>One resume vs up to 3 JDs side by side</td></tr>
+<tr bgcolor="#0d1117"><td>🧪</td><td><b>Sample Files</b></td><td>Test instantly without uploading your own files</td></tr>
+<tr bgcolor="#161b22"><td>🔄</td><td><b>Re-Analyze Button</b></td><td>Swap resume without refreshing the page</td></tr>
+<tr bgcolor="#0d1117"><td>📥</td><td><b>Download as PDF</b></td><td>Print-to-PDF — only the report card is exported</td></tr>
+</tbody>
+</table>
 
 </td>
 <td width="50%" valign="top" style="border:1px solid #30363d; border-radius:8px; padding:16px;">
 
 ### 🕒 Score History &nbsp;&nbsp;&nbsp; 🎨 Theme
 
-| | Feature | What it does |
-|---|---|---|
-| 💾 | **Persistent History** | Last 10 runs saved in localStorage |
-| 👁️ | **One-Click Restore** | View any past report — list auto-collapses |
-| 🗑️ | **Clear History** | Wipes history and dismisses open report |
-| 🌙 | **Dark / Light Theme** | Toggle with preference saved in localStorage |
-| 📱 | **Responsive Design** | Mobile-first, stacks cleanly on small screens |
-| 🖨️ | **Print Styles** | Clean white PDF output via `@media print` |
+<table>
+<thead><tr bgcolor="#1f2937"><th></th><th>Feature</th><th>What it does</th></tr></thead>
+<tbody>
+<tr bgcolor="#161b22"><td>💾</td><td><b>Persistent History</b></td><td>Last 10 runs saved in localStorage</td></tr>
+<tr bgcolor="#0d1117"><td>👁️</td><td><b>One-Click Restore</b></td><td>View any past report — list auto-collapses</td></tr>
+<tr bgcolor="#161b22"><td>🗑️</td><td><b>Clear History</b></td><td>Wipes history and dismisses open report</td></tr>
+<tr bgcolor="#0d1117"><td>🌙</td><td><b>Dark / Light Theme</b></td><td>Toggle with preference saved in localStorage</td></tr>
+<tr bgcolor="#161b22"><td>📱</td><td><b>Responsive Design</b></td><td>Mobile-first, stacks cleanly on small screens</td></tr>
+<tr bgcolor="#0d1117"><td>🖨️</td><td><b>Print Styles</b></td><td>Clean white PDF output via <code>@media print</code></td></tr>
+</tbody>
+</table>
 
 </td>
 </tr>
@@ -136,14 +154,19 @@
 
 <div align="center">
 
-| Layer | Technology |
-|---|---|
-| 🐍 **Backend** | Python 3.11 · FastAPI · uvicorn |
-| 🧠 **NLP** | spaCy `en_core_web_sm` |
-| 📄 **PDF Parsing** | PyMuPDF (fitz) |
-| ⚛️ **Frontend** | React 18 · Vite · Plain CSS (no Tailwind, no Bootstrap) |
-| 💾 **Storage** | Browser localStorage — no database |
-| ☁️ **Hosting** | Backend → Render · Frontend → Vercel |
+<table>
+<thead>
+<tr bgcolor="#1f2937"><th>Layer</th><th>Technology</th></tr>
+</thead>
+<tbody>
+<tr bgcolor="#161b22"><td>🐍 <b>Backend</b></td><td>Python 3.11 · FastAPI · uvicorn</td></tr>
+<tr bgcolor="#0d1117"><td>🧠 <b>NLP</b></td><td>spaCy <code>en_core_web_sm</code></td></tr>
+<tr bgcolor="#161b22"><td>📄 <b>PDF Parsing</b></td><td>PyMuPDF (fitz)</td></tr>
+<tr bgcolor="#0d1117"><td>⚛️ <b>Frontend</b></td><td>React 18 · Vite · Plain CSS (no Tailwind, no Bootstrap)</td></tr>
+<tr bgcolor="#161b22"><td>💾 <b>Storage</b></td><td>Browser localStorage — no database</td></tr>
+<tr bgcolor="#0d1117"><td>☁️ <b>Hosting</b></td><td>Backend → Render · Frontend → Vercel</td></tr>
+</tbody>
+</table>
 
 </div>
 
@@ -268,15 +291,25 @@ Open `http://localhost:5173` in your browser.
 
 ### Backend (`backend/.env`)
 
-| Variable | Description | Default |
-|---|---|---|
-| `ALLOWED_ORIGIN` | Frontend origin for CORS | `*` |
+<table>
+<thead>
+<tr bgcolor="#1f2937"><th>Variable</th><th>Description</th><th>Default</th></tr>
+</thead>
+<tbody>
+<tr bgcolor="#161b22"><td><code>ALLOWED_ORIGIN</code></td><td>Frontend origin for CORS</td><td><code>*</code></td></tr>
+</tbody>
+</table>
 
 ### Frontend (`frontend/.env`)
 
-| Variable | Description | Default |
-|---|---|---|
-| `VITE_API_URL` | URL of the FastAPI backend | `http://localhost:8000` |
+<table>
+<thead>
+<tr bgcolor="#1f2937"><th>Variable</th><th>Description</th><th>Default</th></tr>
+</thead>
+<tbody>
+<tr bgcolor="#161b22"><td><code>VITE_API_URL</code></td><td>URL of the FastAPI backend</td><td><code>http://localhost:8000</code></td></tr>
+</tbody>
+</table>
 
 ---
 
@@ -352,6 +385,6 @@ Things that could make HireReady even better:
 
 <div align="center">
 
-Made with ❤️ · MIT License
+Made with ❤️ by Osho Upadhyay · MIT License
 
 </div>
