@@ -82,6 +82,14 @@ body {
   align-items: start;
 }
 
+/* Left panel sticks to viewport while right panel scrolls independently.
+   position:sticky naturally stops at the bottom of the parent (.split-layout),
+   so it never goes past the end of the right panel. */
+.split-left {
+  position: sticky;
+  top: 1rem;
+}
+
 /* When text viewer is collapsed: shrink left column to its content (the narrow button) */
 .split-layout--viewer-hidden {
   grid-template-columns: auto 1fr;

@@ -135,6 +135,7 @@ export default function App() {
           onClear={() => {
             clearHistory()
             setHistory([])
+            setReport(null)
           }}
         />
       )}

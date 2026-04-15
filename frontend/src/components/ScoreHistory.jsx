@@ -112,7 +112,7 @@ export default function ScoreHistory({ entries, onRestore, onDelete, onClear }) 
                 <div className="history-entry-actions">
                   <button
                     className="history-restore-btn"
-                    onClick={() => onRestore(entry.report)}
+                    onClick={() => { onRestore(entry.report); setOpen(false) }}
                     type="button"
                     title="Re-display this report"
                   >
