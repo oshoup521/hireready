@@ -1,0 +1,326 @@
+/* ── ResumeTextViewer wrapper ── */
+.atv-wrapper {
+  background: var(--bg-card);
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  overflow: hidden;
+  display: flex;
+  flex-direction: column;
+  position: sticky;
+  top: 1.5rem;
+  height: calc(100vh - 3rem);
+}
+
+/* ── Expand button (shown when collapsed — replaces the full wrapper) ── */
+.atv-expand-btn {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 0.5rem;
+  padding: 1rem 0.6rem;
+  background: var(--bg-card);
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  color: var(--text-secondary);
+  font-size: 0.72rem;
+  font-weight: 600;
+  cursor: pointer;
+  writing-mode: vertical-rl;
+  text-orientation: mixed;
+  height: calc(100vh - 3rem);
+  position: sticky;
+  top: 1.5rem;
+  transition: color 0.15s, background 0.15s, border-color 0.15s;
+  white-space: nowrap;
+}
+
+.atv-expand-btn:hover {
+  color: var(--accent-light);
+  border-color: var(--accent);
+  background: color-mix(in srgb, var(--accent) 8%, transparent);
+}
+
+.atv-expand-icon { font-size: 1rem; }
+.atv-expand-label { letter-spacing: 0.06em; text-transform: uppercase; }
+.atv-expand-arrow { font-size: 0.6rem; opacity: 0.6; }
+
+/* ── Header bar ── */
+.atv-header {
+  display: flex;
+  align-items: stretch;
+  background: var(--bg-secondary);
+  border-bottom: 1px solid var(--border);
+  flex-shrink: 0;
+  min-width: 0;
+}
+
+/* Left side: label + optional tabs stacked vertically */
+.atv-header-left {
+  display: flex;
+  flex-direction: column;
+  flex: 1;
+  min-width: 0;
+}
+
+/* Always-visible section label */
+.atv-section-label {
+  padding: 0.45rem 0.85rem 0.2rem;
+  font-size: 0.65rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.09em;
+  color: var(--text-secondary);
+}
+
+/* Tab group */
+.atv-tabs {
+  display: flex;
+  min-width: 0;
+}
+
+.atv-tab {
+  display: flex;
+  align-items: center;
+  gap: 0.35rem;
+  padding: 0.65rem 1rem;
+  background: transparent;
+  border: none;
+  border-bottom: 2px solid transparent;
+  color: var(--text-secondary);
+  font-size: 0.8rem;
+  font-weight: 500;
+  cursor: pointer;
+  white-space: nowrap;
+  margin-bottom: -1px;
+  transition: color 0.15s, border-color 0.15s;
+}
+
+.atv-tab:hover { color: var(--text-primary); }
+
+.atv-tab--active {
+  color: var(--accent-light);
+  border-bottom-color: var(--accent);
+  font-weight: 600;
+}
+
+/* Collapse / hide button */
+.atv-collapse-btn {
+  align-self: center;
+  margin-left: auto;
+  padding: 0.35rem 0.75rem;
+  background: transparent;
+  border: 1px solid var(--border);
+  border-radius: 6px;
+  color: var(--text-secondary);
+  font-size: 0.7rem;
+  font-weight: 600;
+  cursor: pointer;
+  flex-shrink: 0;
+  margin-right: 0.6rem;
+  display: flex;
+  align-items: center;
+  gap: 0.25rem;
+  transition: color 0.15s, background 0.15s, border-color 0.15s;
+}
+
+.atv-collapse-btn:hover {
+  color: var(--accent-light);
+  border-color: var(--accent);
+  background: color-mix(in srgb, var(--accent) 8%, transparent);
+}
+
+/* ── Legend ── */
+.atv-legend {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+  padding: 0.55rem 0.85rem;
+  background: var(--bg-secondary);
+  border-bottom: 1px solid var(--border);
+  flex-shrink: 0;
+}
+
+.atv-legend-item {
+  font-size: 0.68rem;
+  font-weight: 600;
+  padding: 0.15rem 0.55rem;
+  border-radius: 4px;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+}
+
+.atv-legend--matched {
+  background: color-mix(in srgb, var(--success) 20%, transparent);
+  color: var(--success);
+}
+
+.atv-legend--missing {
+  background: color-mix(in srgb, var(--danger) 15%, transparent);
+  color: var(--danger);
+  text-decoration: underline;
+  text-decoration-style: wavy;
+}
+
+.atv-legend--weak {
+  background: color-mix(in srgb, var(--warning) 15%, transparent);
+  color: var(--warning);
+  text-decoration: underline;
+  text-decoration-style: wavy;
+}
+
+.atv-legend--strong {
+  background: color-mix(in srgb, var(--accent) 12%, transparent);
+  color: var(--accent-light);
+  text-decoration: underline;
+}
+
+.atv-legend--quantified {
+  background: color-mix(in srgb, var(--success) 10%, transparent);
+  color: var(--success);
+}
+
+/* ── Scrollable text area ── */
+.atv-content {
+  flex: 1;
+  overflow-y: auto;
+  padding: 1rem 1.1rem;
+  font-family: 'Inter', system-ui, sans-serif;
+  font-size: 0.8rem;
+  line-height: 1.75;
+  color: var(--text-primary);
+}
+
+/* Thin, styled scrollbar */
+.atv-content::-webkit-scrollbar {
+  width: 4px;
+}
+.atv-content::-webkit-scrollbar-track {
+  background: transparent;
+}
+.atv-content::-webkit-scrollbar-thumb {
+  background: var(--border);
+  border-radius: 2px;
+}
+
+/* ── Lines ── */
+.atv-line {
+  position: relative;
+  padding: 0.05rem 0;
+  word-break: break-word;
+}
+
+/* Quantified achievement line */
+.atv-line--quantified {
+  padding-left: 1.25rem;
+  border-left: 3px solid var(--success);
+  background: color-mix(in srgb, var(--success) 5%, transparent);
+  margin: 0.15rem 0;
+  border-radius: 0 4px 4px 0;
+}
+
+.atv-quant-badge {
+  position: absolute;
+  left: 0.25rem;
+  font-size: 0.65rem;
+  top: 50%;
+  transform: translateY(-50%);
+}
+
+/* Blank line spacer */
+.atv-blank-line {
+  height: 0.6rem;
+}
+
+/* Empty state */
+.atv-empty {
+  color: var(--text-secondary);
+  font-style: italic;
+  font-size: 0.82rem;
+  text-align: center;
+  margin-top: 2rem;
+}
+
+/* ── Annotation segments ── */
+.atv-seg--matched {
+  background: color-mix(in srgb, var(--success) 25%, transparent);
+  color: var(--success);
+  border-radius: 3px;
+  padding: 0 1px;
+  font-weight: 500;
+}
+
+.atv-seg--missing {
+  text-decoration: underline;
+  text-decoration-style: wavy;
+  text-decoration-color: var(--danger);
+  color: var(--danger);
+}
+
+.atv-seg--weak {
+  text-decoration: underline;
+  text-decoration-style: wavy;
+  text-decoration-color: var(--warning);
+  color: var(--warning);
+  font-weight: 500;
+}
+
+.atv-seg--strong {
+  text-decoration: underline;
+  text-decoration-color: var(--accent);
+  color: var(--accent-light);
+  font-weight: 500;
+}
+
+/* ── Mobile ── */
+@media (max-width: 900px) {
+  .atv-wrapper {
+    position: static;
+    height: 55vh;
+  }
+
+  /* On mobile the expand button becomes a horizontal bar */
+  .atv-expand-btn {
+    writing-mode: horizontal-tb;
+    flex-direction: row;
+    height: auto;
+    position: static;
+    width: 100%;
+    padding: 0.65rem 1rem;
+    justify-content: center;
+  }
+
+  .atv-expand-arrow {
+    transform: rotate(90deg);
+    display: inline-block;
+  }
+}
+
+@media (max-width: 640px) {
+  .atv-tab {
+    font-size: 0.75rem;
+    padding: 0.6rem 0.65rem;
+    flex: 1;
+    justify-content: center;
+  }
+
+  .atv-legend {
+    gap: 0.35rem;
+    padding: 0.45rem 0.75rem;
+  }
+
+  .atv-legend-item {
+    font-size: 0.62rem;
+  }
+
+  .atv-content {
+    font-size: 0.75rem;
+    padding: 0.75rem 0.85rem;
+  }
+}
+
+@media (max-width: 480px) {
+  .atv-wrapper {
+    height: 50vh;
+  }
+}

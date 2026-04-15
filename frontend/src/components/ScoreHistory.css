@@ -1,0 +1,183 @@
+/* ── Score History panel ── */
+.score-history {
+  margin-bottom: 1.5rem;
+  padding: 0;
+  overflow: hidden;
+}
+
+.history-toggle {
+  width: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 0.85rem 1.25rem;
+  background: transparent;
+  border: none;
+  color: var(--text-primary);
+  font-size: 0.875rem;
+  font-weight: 600;
+  cursor: pointer;
+  text-align: left;
+}
+
+.history-toggle:hover {
+  background: color-mix(in srgb, var(--accent) 5%, transparent);
+}
+
+.history-toggle-label {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.history-count {
+  background: var(--accent);
+  color: #fff;
+  font-size: 0.7rem;
+  font-weight: 700;
+  padding: 0.1rem 0.45rem;
+  border-radius: 999px;
+  line-height: 1.4;
+}
+
+.history-chevron {
+  font-size: 0.7rem;
+  color: var(--text-secondary);
+}
+
+/* Body expands when open */
+.history-body {
+  padding: 0 1.25rem 1rem;
+  border-top: 1px solid var(--border);
+}
+
+.history-list {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+  margin-top: 0.75rem;
+}
+
+/* Individual history row */
+.history-entry {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.75rem;
+  padding: 0.55rem 0.75rem;
+  background: var(--bg-secondary);
+  border: 1px solid var(--border);
+  border-radius: 8px;
+}
+
+.history-entry-left {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  min-width: 0;
+}
+
+/* Large score number */
+.history-score {
+  font-size: 1.4rem;
+  font-weight: 700;
+  line-height: 1;
+  flex-shrink: 0;
+  width: 2.5rem;
+  text-align: center;
+}
+
+.history-meta {
+  display: flex;
+  flex-direction: column;
+  min-width: 0;
+}
+
+.history-filename {
+  font-size: 0.8rem;
+  font-weight: 500;
+  color: var(--text-primary);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.history-date {
+  font-size: 0.72rem;
+  color: var(--text-secondary);
+  margin-top: 0.1rem;
+}
+
+/* Actions group (View + Delete) */
+.history-entry-actions {
+  display: flex;
+  align-items: center;
+  gap: 0.4rem;
+  flex-shrink: 0;
+}
+
+/* Restore button */
+.history-restore-btn {
+  background: transparent;
+  border: 1px solid var(--accent);
+  color: var(--accent-light);
+  font-size: 0.75rem;
+  font-weight: 600;
+  padding: 0.3rem 0.75rem;
+  border-radius: 6px;
+  cursor: pointer;
+  transition: background 0.15s, color 0.15s;
+}
+
+.history-restore-btn:hover {
+  background: var(--accent);
+  color: #fff;
+}
+
+/* Delete single entry button */
+.history-delete-btn {
+  background: transparent;
+  border: 1px solid transparent;
+  color: var(--text-secondary);
+  font-size: 1rem;
+  line-height: 1;
+  width: 1.75rem;
+  height: 1.75rem;
+  border-radius: 6px;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: background 0.15s, color 0.15s, border-color 0.15s;
+}
+
+.history-delete-btn:hover {
+  background: color-mix(in srgb, var(--danger) 12%, transparent);
+  color: var(--danger);
+  border-color: color-mix(in srgb, var(--danger) 30%, transparent);
+}
+
+/* Clear all link */
+.history-clear-btn {
+  display: block;
+  margin-top: 0.85rem;
+  background: transparent;
+  border: none;
+  color: var(--text-secondary);
+  font-size: 0.75rem;
+  cursor: pointer;
+  text-decoration: underline;
+  padding: 0;
+}
+
+.history-clear-btn:hover {
+  color: var(--danger);
+}
+
+/* Mobile */
+@media (max-width: 480px) {
+  .history-score {
+    font-size: 1.15rem;
+    width: 2rem;
+  }
+}

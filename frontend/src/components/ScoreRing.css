@@ -44,6 +44,20 @@
   font-weight: 700;
 }
 
+/* Compact variant for compare cards */
+.score-ring-wrapper--compact {
+  padding: 0.25rem 0;
+}
+
+.score-ring-wrapper--compact .score-ring-svg {
+  width: 100px;
+  height: 100px;
+}
+
+.ring-score-text--compact {
+  font-size: 1.8rem;
+}
+
 @media (max-width: 480px) {
   .score-ring-svg {
     width: 130px;

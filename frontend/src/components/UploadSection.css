@@ -4,6 +4,43 @@
   padding: 1.1rem 1.4rem;        /* tighter than default .card */
 }
 
+/* ── Re-analyze bar ── */
+.reanalyze-bar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  background: color-mix(in srgb, var(--success) 10%, var(--bg-secondary));
+  border: 1px solid color-mix(in srgb, var(--success) 30%, transparent);
+  border-radius: 8px;
+  padding: 0.55rem 1rem;
+  margin-bottom: 0.9rem;
+  gap: 0.75rem;
+}
+
+.reanalyze-msg {
+  font-size: 0.82rem;
+  color: var(--success);
+  font-weight: 500;
+}
+
+.btn-reanalyze {
+  background: var(--success);
+  color: #fff;
+  font-size: 0.78rem;
+  font-weight: 600;
+  padding: 0.4rem 1rem;
+  border-radius: 6px;
+  border: none;
+  cursor: pointer;
+  white-space: nowrap;
+  transition: opacity 0.15s ease;
+  flex-shrink: 0;
+}
+
+.btn-reanalyze:hover {
+  opacity: 0.85;
+}
+
 /* ── Top bar: mode toggle + hint ── */
 .upload-header {
   display: flex;
@@ -156,6 +193,29 @@
   font-size: 0.875rem;
   white-space: nowrap;
   flex-shrink: 0;
+}
+
+/* ── Sample files hint ── */
+.sample-hint {
+  font-size: 0.78rem;
+  color: var(--text-secondary);
+  text-align: center;
+  margin-top: 0.6rem;
+}
+
+.sample-link {
+  background: transparent;
+  border: none;
+  color: var(--accent-light);
+  font-size: inherit;
+  cursor: pointer;
+  text-decoration: underline;
+  padding: 0;
+  font-family: inherit;
+}
+
+.sample-link:hover {
+  color: var(--accent);
 }
 
 /* ── Mobile: stack everything ── */

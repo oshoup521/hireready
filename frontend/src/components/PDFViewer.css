@@ -193,3 +193,43 @@
     height: 45vh;
   }
 }
+
+/* ── Narrow phones: tighten up the tab bar ── */
+@media (max-width: 640px) {
+  /* Hide the filename — not needed on mobile, just wastes space */
+  .pdf-tabs .pdf-active-name,
+  .pdf-single-header .pdf-active-name {
+    display: none;
+  }
+
+  /* Shrink tab padding so both buttons fit comfortably */
+  .pdf-tab {
+    flex: 1;
+    justify-content: center;
+    padding: 0.6rem 0.6rem;
+    font-size: 0.75rem;
+  }
+
+  /* Single-header: let icon + filename take full width with collapse on right */
+  .pdf-single-header {
+    padding: 0.55rem 0.75rem;
+  }
+
+  /* Collapse button: bigger tap target */
+  .pdf-collapse-btn {
+    min-width: 2.5rem;
+    min-height: 2.5rem;
+  }
+}
+
+/* ── Very small phones (< 380px): drop the emoji icons to save more room ── */
+@media (max-width: 380px) {
+  .pdf-tab .pdf-tab-icon {
+    display: none;
+  }
+
+  .pdf-tab {
+    padding: 0.55rem 0.4rem;
+    font-size: 0.72rem;
+  }
+}

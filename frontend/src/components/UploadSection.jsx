@@ -1,7 +1,7 @@
 import { useState, useRef } from 'react'
 import './UploadSection.css'
 
-export default function UploadSection({ onAnalyze, isLoading, isWakingUp, error }) {
+export default function UploadSection({ onAnalyze, onReset, hasReport, isLoading, isWakingUp, error }) {
   const [mode, setMode] = useState('ats_vs_jd')
   const [resumeFile, setResumeFile] = useState(null)
   const [jdFile, setJdFile] = useState(null)
@@ -13,7 +13,9 @@ export default function UploadSection({ onAnalyze, isLoading, isWakingUp, error 
 
   function handleModeChange(newMode) {
     setMode(newMode)
-    if (newMode === 'ats_only') setJdFile(null)
+    // Do NOT clear jdFile here — preserve it so switching back to ats_vs_jd
+    // restores the previously selected JD without forcing a re-upload.
+    // handleAnalyze already passes null for jd when mode === 'ats_only'.
   }
 
   function isValidFile(file) {
@@ -45,10 +47,38 @@ export default function UploadSection({ onAnalyze, isLoading, isWakingUp, error 
     onAnalyze(resumeFile, mode === 'ats_vs_jd' ? jdFile : null)
   }
 
+  // Load bundled sample files from /public and auto-fill the drop zones
+  async function handleTrySample() {
+    try {
+      const [resumeRes, jdRes] = await Promise.all([
+        fetch('/sample-resume.pdf'),
+        fetch('/sample-jd.pdf'),
+      ])
+      const [resumeBlob, jdBlob] = await Promise.all([resumeRes.blob(), jdRes.blob()])
+      const resume = new File([resumeBlob], 'sample-resume.pdf', { type: 'application/pdf' })
+      const jd     = new File([jdBlob],     'sample-jd.pdf',     { type: 'application/pdf' })
+      setMode('ats_vs_jd')
+      setResumeFile(resume)
+      setJdFile(jd)
+    } catch {
+      // Silent fail — user can still upload manually
+    }
+  }
+
   const canAnalyze = !!resumeFile && (mode === 'ats_only' || !!jdFile) && !isLoading
 
   return (
     <section className="upload-section card">
+
+      {/* Re-analyze strip — only visible after a report has been generated */}
+      {hasReport && (
+        <div className="reanalyze-bar">
+          <span className="reanalyze-msg">✅ Analysis complete</span>
+          <button className="btn-reanalyze" onClick={onReset} type="button">
+            ↺ New Analysis
+          </button>
+        </div>
+      )}
 
       {/* Top bar: mode toggle left, hint text right */}
       <div className="upload-header">
@@ -123,6 +153,16 @@ export default function UploadSection({ onAnalyze, isLoading, isWakingUp, error 
           )}
         </button>
       </div>
+
+      {/* Sample files shortcut — hide once files are selected */}
+      {!resumeFile && !jdFile && (
+        <div className="sample-hint">
+          No files yet?{' '}
+          <button className="sample-link" onClick={handleTrySample} type="button">
+            Try with sample resume & JD
+          </button>
+        </div>
+      )}
 
       {isWakingUp && (
         <div className="wakeup-banner">

@@ -10,10 +10,11 @@ Render Start Command:
 Routes:
     GET  /health   — health check for Render
     POST /analyze  — accepts resume + JD PDFs, returns score report JSON
+    POST /compare  — accepts resume + up to 3 JD PDFs, returns array of score reports
 """
 
 import os
-from typing import Optional
+from typing import List, Optional
 from fastapi import FastAPI, File, UploadFile, HTTPException
 from fastapi.middleware.cors import CORSMiddleware
 from dotenv import load_dotenv
@@ -112,6 +113,8 @@ async def analyze_resume(
         if jd is None:
             # ATS-only mode: score resume on its own merits
             result = score_resume_only(resume_text)
+            result["resume_text"] = resume_text[:6000]
+            result["jd_text"] = ""
         else:
             # JD-comparison mode: read and parse the JD, then compare
             try:
@@ -125,6 +128,8 @@ async def analyze_resume(
                     detail="Could not extract text from job description. Please ensure the file is a valid PDF or DOCX.",
                 )
             result = score_resume(resume_text, jd_text)
+            result["resume_text"] = resume_text[:6000]
+            result["jd_text"] = jd_text[:4000]
     except HTTPException:
         raise
     except Exception:
@@ -135,3 +140,61 @@ async def analyze_resume(
 
     # Step 4 — Return the full result dict as JSON
     return result
+
+
+@app.post("/compare")
+async def compare_resume(
+    resume: UploadFile = File(...),
+    jds: List[UploadFile] = File(...),
+):
+    """
+    Compare one resume against multiple job descriptions (up to 3).
+
+    Accepts multipart/form-data with:
+        resume  — PDF/DOCX of the candidate's resume (required)
+        jds     — List of 1-3 PDF/DOCX job description files (required)
+
+    Returns a JSON array of score report objects, one per JD, each including
+    a `jd_label` field set to the original filename.
+    """
+    if not jds:
+        raise HTTPException(status_code=422, detail="At least one JD file is required.")
+    if len(jds) > 3:
+        raise HTTPException(status_code=422, detail="Maximum 3 JD files allowed per comparison.")
+
+    # Parse the resume once
+    try:
+        resume_bytes = await resume.read()
+        resume_text = extract_text(resume_bytes, resume.filename or "resume.pdf")
+    except ValueError as exc:
+        raise HTTPException(status_code=422, detail=str(exc))
+    except Exception:
+        raise HTTPException(
+            status_code=422,
+            detail="Could not extract text from resume. Please ensure the file is a valid PDF or DOCX.",
+        )
+
+    # Score resume against each JD
+    results = []
+    for jd_file in jds:
+        try:
+            jd_bytes = await jd_file.read()
+            jd_text = extract_text(jd_bytes, jd_file.filename or "jd.pdf")
+        except ValueError as exc:
+            raise HTTPException(status_code=422, detail=str(exc))
+        except Exception:
+            raise HTTPException(
+                status_code=422,
+                detail=f"Could not extract text from '{jd_file.filename}'.",
+            )
+        try:
+            result = score_resume(resume_text, jd_text)
+            result["jd_label"] = jd_file.filename or f"JD {len(results) + 1}"
+            results.append(result)
+        except Exception:
+            raise HTTPException(
+                status_code=500,
+                detail=f"Scoring failed for '{jd_file.filename}', please try again.",
+            )
+
+    return results

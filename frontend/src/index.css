@@ -74,7 +74,7 @@ body {
   max-width: 1400px;
 }
 
-/* Split layout: PDF on left, report on right */
+/* Split layout: text viewer on left, report on right */
 .split-layout {
   display: grid;
   grid-template-columns: 1fr 1fr;
@@ -82,17 +82,23 @@ body {
   align-items: start;
 }
 
+/* When text viewer is collapsed: shrink left column to its content (the narrow button) */
+.split-layout--viewer-hidden {
+  grid-template-columns: auto 1fr;
+}
+
 /* On smaller screens: switch to flex column so order is explicit and reliable */
 @media (max-width: 900px) {
   .split-layout {
     display: flex;
     flex-direction: column;
+    align-items: stretch;   /* override grid's align-items: start so children fill full width */
   }
 
   /* Report card first — score must be visible without scrolling */
-  .split-right { order: 1; }
+  .split-right { order: 1; width: 100%; }
   /* PDF viewer second — reference material, collapsed by default */
-  .split-left  { order: 2; }
+  .split-left  { order: 2; width: 100%; }
 }
 
 /* ----- Card ----- */
@@ -202,6 +208,11 @@ button {
   padding-top: 0;
 }
 
+/* Hidden when compare mode is active */
+.upload-centering-wrapper--hidden {
+  display: none;
+}
+
 /* ----- Animations ----- */
 @keyframes fadeInUp {
   from { opacity: 0; transform: translateY(16px); }
@@ -283,6 +294,11 @@ button {
   /* Reduce centering padding slightly on narrow viewports */
   .upload-centering-wrapper {
     padding-top: clamp(4rem, 18vh, 14rem);
+  }
+
+  /* Must come AFTER the rule above so it wins (same specificity, later source) */
+  .upload-centering-wrapper--has-report {
+    padding-top: 0;
   }
 }
 

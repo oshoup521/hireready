@@ -1,0 +1,121 @@
+/* ── DetailPanel ── */
+.detail-panel {
+  margin-top: 0.35rem;
+  margin-bottom: 0.75rem;
+  border-radius: 8px;
+  overflow: hidden;
+  border: 1px solid var(--border);
+}
+
+.detail-panel-toggle {
+  width: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 0.5rem 0.85rem;
+  background: color-mix(in srgb, var(--dp-color, var(--accent)) 6%, var(--bg-secondary));
+  border: none;
+  cursor: pointer;
+  text-align: left;
+  gap: 0.5rem;
+}
+
+.detail-panel-toggle:hover {
+  background: color-mix(in srgb, var(--dp-color, var(--accent)) 12%, var(--bg-secondary));
+}
+
+.detail-panel-title {
+  font-size: 0.78rem;
+  font-weight: 600;
+  color: var(--dp-color, var(--text-secondary));
+}
+
+.detail-panel-chevron {
+  font-size: 0.6rem;
+  color: var(--text-secondary);
+  flex-shrink: 0;
+}
+
+.detail-panel-body {
+  padding: 0.75rem 0.85rem;
+  background: var(--bg-secondary);
+  border-top: 1px solid var(--border);
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+}
+
+/* Issue items (formatting, grammar) */
+.detail-issue {
+  font-size: 0.8rem;
+  color: var(--text-primary);
+  line-height: 1.5;
+  padding: 0.4rem 0.5rem;
+  background: color-mix(in srgb, var(--warning) 6%, transparent);
+  border-left: 3px solid var(--warning);
+  border-radius: 0 4px 4px 0;
+}
+
+/* Quantified achievement lines */
+.detail-quote {
+  font-size: 0.78rem;
+  color: var(--text-primary);
+  line-height: 1.5;
+  padding: 0.4rem 0.5rem;
+  background: color-mix(in srgb, var(--success) 6%, transparent);
+  border-left: 3px solid var(--success);
+  border-radius: 0 4px 4px 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+/* Verb rows */
+.verb-row {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 0.35rem;
+}
+
+.verb-label {
+  font-size: 0.72rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  flex-shrink: 0;
+}
+
+.verb-label--strong { color: var(--success); }
+.verb-label--weak   { color: var(--danger); }
+
+.verb-badge {
+  font-size: 0.72rem;
+  font-weight: 500;
+  padding: 0.15rem 0.55rem;
+  border-radius: 999px;
+}
+
+.verb-badge--strong {
+  background: color-mix(in srgb, var(--success) 15%, transparent);
+  color: var(--success);
+  border: 1px solid color-mix(in srgb, var(--success) 30%, transparent);
+}
+
+.verb-badge--weak {
+  background: color-mix(in srgb, var(--danger) 12%, transparent);
+  color: var(--danger);
+  border: 1px solid color-mix(in srgb, var(--danger) 25%, transparent);
+}
+
+/* Job title hint line */
+.title-hint {
+  font-size: 0.78rem;
+  color: var(--text-secondary);
+  margin-top: 0.4rem;
+  padding: 0 0.1rem;
+}
+
+.title-hint strong {
+  color: var(--text-primary);
+}

@@ -11,6 +11,15 @@
 
 .header-left {
   flex-shrink: 0;
+  display: flex;
+  align-items: center;
+  gap: 0.6rem;
+}
+
+.header-icon {
+  width: 32px;
+  height: 32px;
+  object-fit: contain;
 }
 
 .header-logo {
@@ -25,6 +34,39 @@
   font-size: 0.85rem;
   flex: 1;
   text-align: center;
+}
+
+/* Right-side action group */
+.header-actions {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  flex-shrink: 0;
+}
+
+/* Compare mode toggle button */
+.compare-toggle {
+  background: var(--bg-secondary);
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  padding: 0.4rem 0.75rem;
+  font-size: 0.78rem;
+  font-weight: 600;
+  color: var(--text-secondary);
+  cursor: pointer;
+  transition: background 0.2s ease, color 0.15s, border-color 0.15s;
+  white-space: nowrap;
+}
+
+.compare-toggle:hover {
+  color: var(--accent-light);
+  border-color: var(--accent);
+}
+
+.compare-toggle--active {
+  background: color-mix(in srgb, var(--accent) 15%, transparent);
+  border-color: var(--accent);
+  color: var(--accent-light);
 }
 
 .theme-toggle {
@@ -55,9 +97,14 @@
   }
 }
 
-/* Hide tagline on small phones */
+/* Hide tagline on small phones; abbreviate compare button text */
 @media (max-width: 480px) {
   .header-tagline {
     display: none;
+  }
+
+  .compare-toggle {
+    font-size: 0.72rem;
+    padding: 0.4rem 0.55rem;
   }
 }

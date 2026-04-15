@@ -5,3 +5,4 @@ pymupdf
 spacy
 python-dotenv
 python-docx
+pyspellchecker

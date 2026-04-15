@@ -4,9 +4,10 @@ import './ScoreRing.css'
 /**
  * ScoreRing — Animated circular SVG ring showing the overall ATS score.
  * Props:
- *   score {number} 0–100
+ *   score   {number}  0–100
+ *   compact {bool}    Renders a smaller ring without the label (for compare cards)
  */
-export default function ScoreRing({ score }) {
+export default function ScoreRing({ score, compact = false }) {
   const [animatedScore, setAnimatedScore] = useState(0)
 
   // Animate the score counter on mount
@@ -28,8 +29,8 @@ export default function ScoreRing({ score }) {
     return () => cancelAnimationFrame(frame)
   }, [score])
 
-  // SVG circle parameters
-  const radius = 70
+  // SVG circle parameters — compact mode uses a smaller ring
+  const radius = compact ? 42 : 70
   const circumference = 2 * Math.PI * radius
   const strokeDashoffset = circumference - (score / 100) * circumference
 
@@ -49,48 +50,48 @@ export default function ScoreRing({ score }) {
 
   const color = getColor()
 
+  const cx = 80, cy = 80
+
   return (
-    <div className="score-ring-wrapper">
-      <svg className="score-ring-svg" viewBox="0 0 160 160" aria-label={`Overall ATS score: ${score} out of 100`}>
+    <div className={`score-ring-wrapper${compact ? ' score-ring-wrapper--compact' : ''}`}>
+      <svg
+        className="score-ring-svg"
+        viewBox="0 0 160 160"
+        aria-label={`Overall ATS score: ${score} out of 100`}
+      >
         {/* Background track */}
         <circle
           className="ring-track"
-          cx="80"
-          cy="80"
-          r={radius}
+          cx={cx} cy={cy} r={radius}
           fill="none"
           stroke="var(--border)"
-          strokeWidth="10"
+          strokeWidth={compact ? 8 : 10}
         />
         {/* Animated progress arc */}
         <circle
           className="ring-progress"
-          cx="80"
-          cy="80"
-          r={radius}
+          cx={cx} cy={cy} r={radius}
           fill="none"
           stroke={color}
-          strokeWidth="10"
+          strokeWidth={compact ? 8 : 10}
           strokeLinecap="round"
           strokeDasharray={circumference}
           strokeDashoffset={strokeDashoffset}
-          transform="rotate(-90 80 80)"
+          transform={`rotate(-90 ${cx} ${cy})`}
         />
         {/* Score number */}
         <text
-          x="80"
-          y="76"
+          x={cx} y={compact ? 76 : 76}
           textAnchor="middle"
           dominantBaseline="middle"
-          className="ring-score-text"
+          className={compact ? 'ring-score-text ring-score-text--compact' : 'ring-score-text'}
           fill={color}
         >
           {animatedScore}
         </text>
         {/* "/100" label */}
         <text
-          x="80"
-          y="98"
+          x={cx} y={compact ? 96 : 98}
           textAnchor="middle"
           dominantBaseline="middle"
           className="ring-denom-text"
@@ -100,11 +101,13 @@ export default function ScoreRing({ score }) {
         </text>
       </svg>
 
-      {/* Label below ring */}
-      <div className="ring-label">Overall ATS Score</div>
-      <div className="ring-sublabel" style={{ color }}>
-        {getLabel()}
-      </div>
+      {/* Label below ring — hidden in compact mode */}
+      {!compact && (
+        <>
+          <div className="ring-label">Overall ATS Score</div>
+          <div className="ring-sublabel" style={{ color }}>{getLabel()}</div>
+        </>
+      )}
     </div>
   )
 }
