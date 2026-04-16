@@ -106,8 +106,10 @@ export default function App() {
   }
 
   return (
-    <div className={`app-wrapper${report ? ' app-wrapper--wide' : ''}`}>
+    <>
+      {/* Header lives outside app-wrapper so the sticky glass spans the full viewport width */}
       <Header theme={theme} onToggleTheme={toggleTheme} compareMode={compareMode} onToggleCompare={() => setCompareMode((c) => !c)} />
+    <div className={`app-wrapper${report ? ' app-wrapper--wide' : ''}`}>
 
       {/* Centering wrapper: keeps upload in viewport centre until report arrives,
           then slides it up to the top so the report can appear below */}
@@ -172,5 +174,6 @@ export default function App() {
         </div>
       )}
     </div>
+    </>
   )
 }

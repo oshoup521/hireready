@@ -1,11 +1,29 @@
-/* Header layout */
+/* =========================================================
+   Header — sticky glassmorphism navbar
+   ========================================================= */
+
+/* Full-width sticky bar with blur glass effect */
 .site-header {
+  position: sticky;
+  top: 0;
+  z-index: 100;
+  width: 100%;
+  background: var(--nav-glass-bg);
+  backdrop-filter: blur(18px);
+  -webkit-backdrop-filter: blur(18px);
+  border-bottom: 1px solid var(--nav-glass-border);
+  /* Smooth transition when theme switches */
+  transition: background 0.25s ease, border-color 0.25s ease;
+}
+
+/* Inner wrapper: centres content and matches the page max-width */
+.header-inner {
+  max-width: 1400px;   /* wide enough for both normal and wide (split) layouts */
+  margin: 0 auto;
+  padding: 1.1rem 1.5rem;
   display: flex;
   align-items: center;
   justify-content: space-between;
-  padding: 1.25rem 0;
-  border-bottom: 1px solid var(--border);
-  margin-bottom: 2rem;
   gap: 1rem;
 }
 
@@ -46,7 +64,7 @@
 
 /* Compare mode toggle button */
 .compare-toggle {
-  background: var(--bg-secondary);
+  background: transparent;
   border: 1px solid var(--border);
   border-radius: 8px;
   padding: 0.4rem 0.75rem;
@@ -70,7 +88,7 @@
 }
 
 .theme-toggle {
-  background: var(--bg-secondary);
+  background: transparent;
   border: 1px solid var(--border);
   border-radius: 8px;
   padding: 0.4rem 0.6rem;
@@ -82,14 +100,13 @@
 }
 
 .theme-toggle:hover {
-  background: var(--bg-card);
+  background: color-mix(in srgb, var(--accent) 10%, transparent);
 }
 
-/* Mobile: tighten header so more screen is usable */
+/* Mobile: tighten inner padding */
 @media (max-width: 768px) {
-  .site-header {
-    padding: 0.9rem 0;
-    margin-bottom: 1.25rem;
+  .header-inner {
+    padding: 0.85rem 1rem;
   }
 
   .header-logo {

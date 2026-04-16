@@ -18,6 +18,9 @@ body.dark {
   --badge-matched: #1b3a2e;
   --badge-missing: #3a1b1b;
   --badge-extra: #1b2a3a;
+  /* Glassmorphism nav variables */
+  --nav-glass-bg: rgba(13, 13, 13, 0.72);
+  --nav-glass-border: rgba(46, 46, 46, 0.6);
 }
 
 /* ----- Light Theme ----- */
@@ -36,6 +39,9 @@ body.light {
   --badge-matched: #d4f5e4;
   --badge-missing: #fde8e8;
   --badge-extra: #e8effe;
+  /* Glassmorphism nav variables */
+  --nav-glass-bg: rgba(245, 245, 245, 0.72);
+  --nav-glass-border: rgba(224, 224, 224, 0.6);
 }
 
 /* ----- CSS Reset & Base ----- */
@@ -83,11 +89,10 @@ body {
 }
 
 /* Left panel sticks to viewport while right panel scrolls independently.
-   position:sticky naturally stops at the bottom of the parent (.split-layout),
-   so it never goes past the end of the right panel. */
+   top offset accounts for the sticky header height (~62px) + breathing room. */
 .split-left {
   position: sticky;
-  top: 1rem;
+  top: 5rem;
 }
 
 /* When text viewer is collapsed: shrink left column to its content (the narrow button) */
@@ -203,12 +208,12 @@ button {
 
 /* ----- Upload centering wrapper ----- */
 /*
-  On first load: large top padding pushes the upload card to the visual
-  centre of the viewport.  When the report arrives the padding transitions
-  smoothly to 0, giving the "slide up to top" effect.
+  Form sits at the top on first load (2rem breathing room below the header).
+  When the report arrives the padding transitions to 0 so the report flows
+  directly below the upload section without extra gap.
 */
 .upload-centering-wrapper {
-  padding-top: clamp(6rem, 26vh, 18rem);   /* responsive vertical centre */
+  padding-top: 2rem;
   transition: padding-top 0.55s cubic-bezier(0.4, 0, 0.2, 1);
 }
 
@@ -299,9 +304,9 @@ button {
     padding: 1.25rem 1rem;
   }
 
-  /* Reduce centering padding slightly on narrow viewports */
+  /* Reduce top padding slightly on narrow viewports */
   .upload-centering-wrapper {
-    padding-top: clamp(4rem, 18vh, 14rem);
+    padding-top: 1.25rem;
   }
 
   /* Must come AFTER the rule above so it wins (same specificity, later source) */
