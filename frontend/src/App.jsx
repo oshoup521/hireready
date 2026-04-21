@@ -22,6 +22,8 @@ export default function App() {
   // Incrementing this key forces the split-layout to remount, replaying the fade-in-up
   const [reportKey, setReportKey] = useState(0)
   const [history, setHistory] = useState(() => loadHistory())
+  // The previous-run entry used by ScoreDiff (set when we have a new or restored report)
+  const [previousEntry, setPreviousEntry] = useState(null)
   const [compareMode, setCompareMode] = useState(false)
   const [viewerCollapsed, setViewerCollapsed] = useState(
     () => window.matchMedia('(max-width: 900px)').matches
@@ -47,6 +49,7 @@ export default function App() {
     setReport(null)
     setResumeFile(null)
     setError(null)
+    setPreviousEntry(null)
     setUploadKey((k) => k + 1)   // remounts UploadSection, clearing its file state
     window.scrollTo({ top: 0, behavior: 'smooth' })
   }
@@ -83,6 +86,9 @@ export default function App() {
 
       const data = await response.json()
       setReport(data)
+      // Capture the most recent previous run before prepending the new one
+      const prevEntry = history[0] || null
+      setPreviousEntry(prevEntry)
       // Persist to history
       const updated = saveToHistory(data, resumeFile.name)
       setHistory(updated)
@@ -130,10 +136,13 @@ export default function App() {
       {!compareMode && history.length > 0 && (
         <ScoreHistory
           entries={history}
-          onRestore={(savedReport) => {
+          onRestore={(savedReport, entryId) => {
+            // Find the entry just before this one in history to show the diff
+            const idx = history.findIndex((e) => e.id === entryId)
+            const prev = idx >= 0 ? history[idx + 1] || null : null
+            setPreviousEntry(prev)
+
             // Step 1 — snap viewport to top and clear any existing report.
-            //   This puts the upload section back in its "centered" state
-            //   so the slide-up transition has a visible starting point.
             window.scrollTo(0, 0)
             setReport(null)
 
@@ -166,7 +175,7 @@ export default function App() {
               />
             </div>
             <div className="split-right">
-              <ReportCard report={report} />
+              <ReportCard report={report} previousEntry={previousEntry} />
             </div>
           </div>
           {/* Resume Coach — remounts on each new report so chat history resets */}

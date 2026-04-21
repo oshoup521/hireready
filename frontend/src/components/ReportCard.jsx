@@ -6,6 +6,7 @@ import KeywordBadges from './KeywordBadges.jsx'
 import DownloadButton from './DownloadButton.jsx'
 import DetailPanel from './DetailPanel.jsx'
 import ScoreShareCard from './ScoreShareCard.jsx'
+import ScoreDiff from './ScoreDiff.jsx'
 import './ReportCard.css'
 
 // ---------------------------------------------------------------------------
@@ -80,7 +81,7 @@ function useCopy() {
  *   mode === 'ats_vs_jd'    — shows keyword match score + JD comparison panels
  *   mode === 'resume_only'  — shows sections score + resume keywords only panel
  */
-export default function ReportCard({ report }) {
+export default function ReportCard({ report, previousEntry }) {
   const { copiedIdx, copy } = useCopy()
   const [showShareCard, setShowShareCard] = useState(false)
   const [showConfetti, setShowConfetti] = useState(false)
@@ -153,6 +154,15 @@ export default function ReportCard({ report }) {
       {/* Share card overlay */}
       {showShareCard && (
         <ScoreShareCard report={report} onClose={() => setShowShareCard(false)} />
+      )}
+
+      {/* Diff banner — shown when there's a previous run to compare against */}
+      {previousEntry && (
+        <ScoreDiff
+          current={report}
+          previous={previousEntry.report}
+          previousLabel={`${previousEntry.resumeFileName} · ${new Date(previousEntry.timestamp).toLocaleString()}`}
+        />
       )}
 
       {/* Mode badge */}

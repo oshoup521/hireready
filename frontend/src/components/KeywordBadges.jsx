@@ -1,4 +1,4 @@
-import { useState } from 'react'
+import { useState, useEffect, useRef } from 'react'
 import './KeywordBadges.css'
 
 const MAX_DISPLAY = 20  // Max badges per section before showing "+N more"
@@ -15,13 +15,39 @@ const MAX_DISPLAY = 20  // Max badges per section before showing "+N more"
  *   resumeOnlyKeywords {string[]}  All keywords extracted from the resume
  */
 export default function KeywordBadges({ matched, missing, extra, resumeOnlyKeywords }) {
-  const [copiedMissing, setCopiedMissing] = useState(false)
+  const [copyMenuOpen, setCopyMenuOpen] = useState(false)
+  const [copiedFormat, setCopiedFormat] = useState(null)   // 'csv' | 'list' | 'bullets'
+  const menuRef = useRef(null)
 
-  function copyMissingKeywords() {
+  // Close the dropdown on outside click or Escape
+  useEffect(() => {
+    if (!copyMenuOpen) return
+    function handleClick(e) {
+      if (menuRef.current && !menuRef.current.contains(e.target)) {
+        setCopyMenuOpen(false)
+      }
+    }
+    function handleKey(e) {
+      if (e.key === 'Escape') setCopyMenuOpen(false)
+    }
+    document.addEventListener('mousedown', handleClick)
+    document.addEventListener('keydown', handleKey)
+    return () => {
+      document.removeEventListener('mousedown', handleClick)
+      document.removeEventListener('keydown', handleKey)
+    }
+  }, [copyMenuOpen])
+
+  function copyInFormat(format) {
     if (!missing?.length) return
-    navigator.clipboard.writeText(missing.join(', ')).then(() => {
-      setCopiedMissing(true)
-      setTimeout(() => setCopiedMissing(false), 2000)
+    let text
+    if (format === 'csv') text = missing.join(', ')
+    else if (format === 'list') text = missing.join('\n')
+    else if (format === 'bullets') text = missing.map((k) => `• ${k}`).join('\n')
+    navigator.clipboard.writeText(text).then(() => {
+      setCopiedFormat(format)
+      setCopyMenuOpen(false)
+      setTimeout(() => setCopiedFormat(null), 2000)
     })
   }
 
@@ -55,14 +81,49 @@ export default function KeywordBadges({ matched, missing, extra, resumeOnlyKeywo
         variant="missing"
         action={
           missing?.length > 0 && (
-            <button
-              className={`copy-missing-btn ${copiedMissing ? 'copy-missing-btn--copied' : ''}`}
-              onClick={copyMissingKeywords}
-              type="button"
-              title="Copy all missing keywords"
-            >
-              {copiedMissing ? '✓ Copied!' : '⎘ Copy all'}
-            </button>
+            <div className="copy-missing-wrap" ref={menuRef}>
+              <button
+                className={`copy-missing-btn ${copiedFormat ? 'copy-missing-btn--copied' : ''}`}
+                onClick={() => setCopyMenuOpen((o) => !o)}
+                type="button"
+                aria-haspopup="menu"
+                aria-expanded={copyMenuOpen}
+                title="Copy missing keywords"
+              >
+                {copiedFormat ? '✓ Copied!' : `⎘ Copy all (${missing.length}) ▾`}
+              </button>
+              {copyMenuOpen && (
+                <div className="copy-missing-menu" role="menu">
+                  <button
+                    className="copy-missing-menu-item"
+                    onClick={() => copyInFormat('csv')}
+                    type="button"
+                    role="menuitem"
+                  >
+                    <span className="copy-menu-title">Comma-separated</span>
+                    <span className="copy-menu-hint">react, node.js, aws …</span>
+                  </button>
+                  <button
+                    className="copy-missing-menu-item"
+                    onClick={() => copyInFormat('list')}
+                    type="button"
+                    role="menuitem"
+                  >
+                    <span className="copy-menu-title">Newline list</span>
+                    <span className="copy-menu-hint">One keyword per line</span>
+                  </button>
+                  <button
+                    className="copy-missing-menu-item"
+                    onClick={() => copyInFormat('bullets')}
+                    type="button"
+                    role="menuitem"
+                  >
+                    <span className="copy-menu-title">Bulleted list</span>
+                    <span className="copy-menu-hint">• keyword (per line)</span>
+                  </button>
+                </div>
+              )}
+            </div>
           )
         }
       />
