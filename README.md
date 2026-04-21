@@ -112,7 +112,7 @@
 <tr bgcolor="#0d1117"><td>❌</td><td><b>Missing Keywords</b></td><td>JD keywords absent from resume — most actionable</td></tr>
 <tr bgcolor="#161b22"><td>➕</td><td><b>Extra Keywords</b></td><td>Resume keywords beyond the JD scope</td></tr>
 <tr bgcolor="#0d1117"><td>📋</td><td><b>Section Audit</b></td><td>Finds and flags missing resume sections</td></tr>
-<tr bgcolor="#161b22"><td>⎘</td><td><b>Copy All Missing Keywords</b></td><td>One-click copy of every missing keyword</td></tr>
+<tr bgcolor="#161b22"><td>⎘</td><td><b>Copy Missing Keywords</b></td><td>Dropdown with <b>Copy as list</b> and <b>Copy comma-separated</b> formats</td></tr>
 </tbody>
 </table>
 
@@ -166,7 +166,8 @@
 <tr bgcolor="#161b22"><td>⚖️</td><td><b>Multi-JD Compare</b></td><td>One resume vs <b>up to 5</b> JDs side by side</td></tr>
 <tr bgcolor="#0d1117"><td>🧪</td><td><b>Sample Files</b></td><td>Test instantly without uploading your own files</td></tr>
 <tr bgcolor="#161b22"><td>🔄</td><td><b>Re-Analyze Button</b></td><td>Swap resume without refreshing the page</td></tr>
-<tr bgcolor="#0d1117"><td>📥</td><td><b>Download as PDF</b></td><td>Print-to-PDF — only the report card is exported</td></tr>
+<tr bgcolor="#0d1117"><td>📥</td><td><b>Download as PDF</b></td><td>Real PDF via jsPDF + html2canvas — no print dialog, works offline</td></tr>
+<tr bgcolor="#161b22"><td>🔁</td><td><b>Run Diff View</b></td><td>Side-by-side score delta (▲/▼) + keyword changes vs previous run</td></tr>
 <tr bgcolor="#161b22"><td>🎊</td><td><b>Confetti Animation</b></td><td>Celebration burst when your score hits 75+</td></tr>
 <tr bgcolor="#0d1117"><td>🎴</td><td><b>Score Share Card</b></td><td>Spotify Wrapped-style card — download as PNG to share</td></tr>
 </tbody>
