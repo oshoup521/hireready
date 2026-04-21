@@ -396,17 +396,6 @@
   40% { transform: translateY(-4px); opacity: 1; }
 }
 
-/* ----- Wakeup banner ----- */
-.coach-panel__wakeup {
-  font-size: 0.78rem;
-  color: var(--warning);
-  background: color-mix(in srgb, var(--warning) 12%, transparent);
-  border: 1px solid color-mix(in srgb, var(--warning) 40%, transparent);
-  padding: 0.45rem 0.7rem;
-  border-radius: 8px;
-  align-self: flex-start;
-}
-
 /* ----- Input bar ----- */
 .coach-input {
   display: flex;

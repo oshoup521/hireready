@@ -1,7 +1,7 @@
 import { useState, useRef } from 'react'
 import './UploadSection.css'
 
-export default function UploadSection({ onAnalyze, onReset, hasReport, isLoading, isWakingUp, error }) {
+export default function UploadSection({ onAnalyze, onReset, hasReport, isLoading, error }) {
   const [mode, setMode] = useState('ats_vs_jd')
   const [resumeFile, setResumeFile] = useState(null)
   const [jdFile, setJdFile] = useState(null)
@@ -412,11 +412,6 @@ export default function UploadSection({ onAnalyze, onReset, hasReport, isLoading
         </div>
       )}
 
-      {isWakingUp && (
-        <div className="wakeup-banner">
-          ⏳ Backend is waking up on Render, please wait…
-        </div>
-      )}
       {error && (
         <div className="error-message">⚠️ {error}</div>
       )}

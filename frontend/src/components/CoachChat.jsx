@@ -37,12 +37,9 @@ const CHIP_PROMPTS = {
   'skills-breadth': 'Look at the skills in my resume. Are they broad and current enough for my target roles? Suggest specific skills I should add based on what experienced candidates in my field typically list.',
 }
 
-const WAKEUP_DELAY_MS = 5000
-
 export default function CoachChat({ report, apiUrl }) {
   const [messages, setMessages] = useState([])
   const [isLoading, setIsLoading] = useState(false)
-  const [isWakingUp, setIsWakingUp] = useState(false)
   const [isOpen, setIsOpen] = useState(false)
   // Pick the right chip set for this report. Fallback to JD mode if the
   // backend ever omits the field (older reports in localStorage history).
@@ -93,9 +90,6 @@ export default function CoachChat({ report, apiUrl }) {
     const nextMessages = [...messages, { role: 'user', content: trimmed }]
     setMessages(nextMessages)
     setIsLoading(true)
-    setIsWakingUp(false)
-
-    const wakeupTimer = setTimeout(() => setIsWakingUp(true), WAKEUP_DELAY_MS)
 
     try {
       const response = await fetch(`${apiUrl}/chat`, {
@@ -106,8 +100,6 @@ export default function CoachChat({ report, apiUrl }) {
           report,
         }),
       })
-
-      clearTimeout(wakeupTimer)
 
       if (!response.ok) {
         const err = await response.json().catch(() => ({}))
@@ -120,7 +112,6 @@ export default function CoachChat({ report, apiUrl }) {
         { role: 'assistant', content: data.reply, modelUsed: data.model_used },
       ])
     } catch (err) {
-      clearTimeout(wakeupTimer)
       setMessages((prev) => [
         ...prev,
         {
@@ -131,7 +122,6 @@ export default function CoachChat({ report, apiUrl }) {
       ])
     } finally {
       setIsLoading(false)
-      setIsWakingUp(false)
     }
   }
 
@@ -232,12 +222,6 @@ export default function CoachChat({ report, apiUrl }) {
               <div className="coach-typing">
                 <span /><span /><span />
               </div>
-            </div>
-          )}
-
-          {isWakingUp && (
-            <div className="coach-panel__wakeup">
-              Waking up the backend… first reply can take ~30 seconds on the free tier.
             </div>
           )}
 

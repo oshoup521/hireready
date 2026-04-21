@@ -183,18 +183,6 @@ button {
   to { transform: rotate(360deg); }
 }
 
-/* ----- Wakeup banner ----- */
-.wakeup-banner {
-  background: color-mix(in srgb, var(--warning) 15%, transparent);
-  border: 1px solid color-mix(in srgb, var(--warning) 40%, transparent);
-  color: var(--warning);
-  border-radius: 8px;
-  padding: 0.75rem 1rem;
-  font-size: 0.85rem;
-  margin-top: 1rem;
-  text-align: center;
-}
-
 /* ----- Error message ----- */
 .error-message {
   background: color-mix(in srgb, var(--danger) 12%, transparent);
@@ -266,7 +254,6 @@ button {
   .upload-section,
   .split-left,
   .download-btn-wrapper,
-  .wakeup-banner,
   .error-message,
   .coach-fab,
   .coach-panel,

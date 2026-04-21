@@ -11,14 +11,10 @@ import CoachChat from './components/CoachChat.jsx'
 // Locally it's empty — Vite's proxy forwards /analyze and /health to :8000.
 const API_URL = import.meta.env.VITE_API_URL || ''
 
-// Delay (ms) before showing the "backend is waking up" banner
-const WAKEUP_DELAY_MS = 5000
-
 export default function App() {
   const [report, setReport] = useState(null)
   const [resumeFile, setResumeFile] = useState(null)
   const [isLoading, setIsLoading] = useState(false)
-  const [isWakingUp, setIsWakingUp] = useState(false)
   const [error, setError] = useState(null)
   const [theme, setTheme] = useState('dark')
   // Incrementing this key forces UploadSection to remount and reset its local state
@@ -59,15 +55,9 @@ export default function App() {
   // jdPayload is null (ATS-only) | { file: File } | { text: string }
   async function analyzeResume(resumeFile, jdPayload = null, coverLetterFile = null, atsPreset = null) {
     setIsLoading(true)
-    setIsWakingUp(false)
     setError(null)
     setReport(null)
     setResumeFile(resumeFile)
-
-    // Start wakeup timer — show banner if backend hasn't responded in 5s
-    const wakeupTimer = setTimeout(() => {
-      setIsWakingUp(true)
-    }, WAKEUP_DELAY_MS)
 
     try {
       const formData = new FormData()
@@ -86,8 +76,6 @@ export default function App() {
         body: formData,
       })
 
-      clearTimeout(wakeupTimer)
-
       if (!response.ok) {
         const err = await response.json().catch(() => ({}))
         throw new Error(err.detail || `Server error ${response.status}`)
@@ -99,11 +87,9 @@ export default function App() {
       const updated = saveToHistory(data, resumeFile.name)
       setHistory(updated)
     } catch (err) {
-      clearTimeout(wakeupTimer)
       setError(err.message || 'Something went wrong. Please try again.')
     } finally {
       setIsLoading(false)
-      setIsWakingUp(false)
     }
   }
 
@@ -136,7 +122,6 @@ export default function App() {
           onReset={resetAnalysis}
           hasReport={!!report}
           isLoading={isLoading}
-          isWakingUp={isWakingUp}
           error={error}
         />
       </div>
