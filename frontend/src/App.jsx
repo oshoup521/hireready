@@ -5,6 +5,7 @@ import ReportCard from './components/ReportCard.jsx'
 import ResumeTextViewer from './components/ResumeTextViewer.jsx'
 import ScoreHistory, { loadHistory, saveToHistory, clearHistory, deleteHistoryEntry } from './components/ScoreHistory.jsx'
 import CompareMode from './components/CompareMode.jsx'
+import CoachChat from './components/CoachChat.jsx'
 
 // In production VITE_API_URL is the full Render URL.
 // Locally it's empty — Vite's proxy forwards /analyze and /health to :8000.
@@ -170,18 +171,22 @@ export default function App() {
       )}
 
       {!compareMode && report && (
-        <div key={reportKey} className={`split-layout fade-in-up${viewerCollapsed ? ' split-layout--viewer-hidden' : ''}`}>
-          <div className="split-left">
-            <ResumeTextViewer
-              report={report}
-              collapsed={viewerCollapsed}
-              onToggle={() => setViewerCollapsed(c => !c)}
-            />
+        <>
+          <div key={reportKey} className={`split-layout fade-in-up${viewerCollapsed ? ' split-layout--viewer-hidden' : ''}`}>
+            <div className="split-left">
+              <ResumeTextViewer
+                report={report}
+                collapsed={viewerCollapsed}
+                onToggle={() => setViewerCollapsed(c => !c)}
+              />
+            </div>
+            <div className="split-right">
+              <ReportCard report={report} />
+            </div>
           </div>
-          <div className="split-right">
-            <ReportCard report={report} />
-          </div>
-        </div>
+          {/* Resume Coach — remounts on each new report so chat history resets */}
+          <CoachChat key={`coach-${reportKey}`} report={report} apiUrl={API_URL} />
+        </>
       )}
     </div>
     </>

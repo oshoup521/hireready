@@ -23,6 +23,7 @@ from dotenv import load_dotenv
 
 from parser import extract_text
 from scorer import score_resume, score_resume_only
+from coach import CoachRequest, run_coach_chat
 
 logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger("hireready")
@@ -240,3 +241,27 @@ async def compare_resume(
             )
 
     return results
+
+
+@app.post("/chat")
+async def coach_chat(request: CoachRequest):
+    """
+    Resume Coach chatbot. Accepts:
+        messages — conversation history (list of {role, content})
+        report   — the score report (plus resume_text and jd_text) returned
+                   from /analyze; used to build the system prompt every turn.
+
+    Walks a ranked pool of free-tier LLMs via LiteLLM; first one to respond wins.
+    Returns { reply, model_used } or 503 if every provider fails.
+    """
+    try:
+        return await run_coach_chat(request)
+    except RuntimeError as exc:
+        logger.warning("Coach chat exhausted model pool: %s", exc)
+        raise HTTPException(status_code=503, detail=str(exc))
+    except Exception as exc:
+        logger.exception("Coach chat failed")
+        raise HTTPException(
+            status_code=500,
+            detail=f"Coach chat error: {type(exc).__name__}: {exc}",
+        )

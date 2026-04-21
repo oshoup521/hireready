@@ -6,3 +6,4 @@ spacy
 python-dotenv
 python-docx
 pyspellchecker
+litellm

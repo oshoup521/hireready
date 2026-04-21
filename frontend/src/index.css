@@ -267,7 +267,10 @@ button {
   .split-left,
   .download-btn-wrapper,
   .wakeup-banner,
-  .error-message {
+  .error-message,
+  .coach-fab,
+  .coach-panel,
+  .coach-hint {
     display: none !important;
   }
 

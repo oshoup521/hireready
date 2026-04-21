@@ -1,0 +1,566 @@
+/* =========================================================
+   CoachChat.css — floating bottom-right chat widget
+   FAB (closed) + expandable panel (open). Theme-aware via
+   the global CSS variables.
+   ========================================================= */
+
+/* ----- Floating Action Button (closed state) ----- */
+.coach-fab {
+  position: fixed;
+  right: 1.5rem;
+  bottom: 1.5rem;
+  z-index: 100;
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 0.75rem 1.1rem 0.75rem 0.95rem;
+  background: var(--accent);
+  color: #ffffff;
+  border: none;
+  border-radius: 999px;
+  font: inherit;
+  font-size: 0.9rem;
+  font-weight: 500;
+  cursor: pointer;
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.25), 0 2px 6px rgba(0, 0, 0, 0.15);
+  transition: transform 0.15s ease, background-color 0.15s ease, opacity 0.2s ease, box-shadow 0.15s ease;
+  animation: coach-fab-pop-in 0.35s ease-out;
+}
+
+.coach-fab:hover {
+  background: var(--accent-light);
+  transform: translateY(-2px);
+  box-shadow: 0 12px 28px rgba(0, 0, 0, 0.3), 0 3px 8px rgba(0, 0, 0, 0.2);
+}
+
+.coach-fab:active { transform: translateY(0); }
+
+.coach-fab svg {
+  width: 20px;
+  height: 20px;
+  fill: currentColor;
+}
+
+.coach-fab--hidden {
+  opacity: 0;
+  pointer-events: none;
+  transform: scale(0.85) translateY(10px);
+}
+
+@keyframes coach-fab-pop-in {
+  from { opacity: 0; transform: scale(0.7) translateY(20px); }
+  to { opacity: 1; transform: scale(1) translateY(0); }
+}
+
+/* Attention-drawing pulse while the intro hint is visible */
+.coach-fab--pulse::before {
+  content: '';
+  position: absolute;
+  inset: -4px;
+  border-radius: inherit;
+  background: var(--accent);
+  opacity: 0.35;
+  z-index: -1;
+  animation: coach-fab-pulse 1.8s ease-out infinite;
+}
+
+.coach-fab { position: fixed; }  /* reaffirmed so ::before z-index works */
+
+@keyframes coach-fab-pulse {
+  0% { transform: scale(1); opacity: 0.4; }
+  70% { transform: scale(1.35); opacity: 0; }
+  100% { transform: scale(1.35); opacity: 0; }
+}
+
+/* ----- Intro hint (speech bubble anchored above the FAB) ----- */
+.coach-hint {
+  position: fixed;
+  right: 1.5rem;
+  bottom: 5.5rem;
+  z-index: 100;
+  max-width: 260px;
+  padding: 0.85rem 2rem 0.85rem 1rem;
+  background: var(--bg-card);
+  color: var(--text-primary);
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.25), 0 2px 6px rgba(0, 0, 0, 0.15);
+  font-size: 0.85rem;
+  line-height: 1.45;
+  animation: coach-hint-in 0.4s ease-out 0.25s both;
+}
+
+/* Little tail pointing at the FAB */
+.coach-hint::after {
+  content: '';
+  position: absolute;
+  right: 1.6rem;
+  bottom: -7px;
+  width: 14px;
+  height: 14px;
+  background: var(--bg-card);
+  border-right: 1px solid var(--border);
+  border-bottom: 1px solid var(--border);
+  transform: rotate(45deg);
+}
+
+.coach-hint__title {
+  font-weight: 600;
+  color: var(--text-primary);
+  margin-bottom: 0.15rem;
+}
+
+.coach-hint__body {
+  color: var(--text-secondary);
+  font-size: 0.8rem;
+}
+
+.coach-hint__close {
+  position: absolute;
+  top: 0.35rem;
+  right: 0.35rem;
+  width: 22px;
+  height: 22px;
+  border-radius: 6px;
+  border: none;
+  background: transparent;
+  color: var(--text-secondary);
+  cursor: pointer;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  transition: background-color 0.15s ease, color 0.15s ease;
+}
+
+.coach-hint__close:hover {
+  background: var(--bg-secondary);
+  color: var(--text-primary);
+}
+
+.coach-hint__close svg { width: 12px; height: 12px; }
+
+@keyframes coach-hint-in {
+  from { opacity: 0; transform: translateY(8px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+/* ----- Panel (open state) ----- */
+.coach-panel {
+  position: fixed;
+  right: 1.5rem;
+  bottom: 1.5rem;
+  z-index: 101;
+  width: 380px;
+  max-width: calc(100vw - 3rem);
+  height: 560px;
+  max-height: calc(100vh - 3rem);
+  background: var(--bg-card);
+  border: 1px solid var(--border);
+  border-radius: 16px;
+  box-shadow: 0 16px 48px rgba(0, 0, 0, 0.35), 0 4px 12px rgba(0, 0, 0, 0.2);
+  display: flex;
+  flex-direction: column;
+  opacity: 0;
+  pointer-events: none;
+  transform: translateY(16px) scale(0.96);
+  transform-origin: bottom right;
+  transition: opacity 0.2s ease, transform 0.2s ease;
+  overflow: hidden;
+}
+
+.coach-panel--open {
+  opacity: 1;
+  pointer-events: auto;
+  transform: translateY(0) scale(1);
+}
+
+/* ----- Panel header ----- */
+.coach-panel__header {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 0.75rem;
+  padding: 1rem 1.1rem 0.75rem;
+  border-bottom: 1px solid var(--border);
+}
+
+.coach-panel__title {
+  font-size: 1rem;
+  font-weight: 600;
+  color: var(--text-primary);
+  letter-spacing: -0.01em;
+}
+
+.coach-panel__subtitle {
+  font-size: 0.78rem;
+  color: var(--text-secondary);
+  margin-top: 0.15rem;
+}
+
+.coach-panel__close {
+  flex-shrink: 0;
+  width: 30px;
+  height: 30px;
+  border-radius: 8px;
+  border: none;
+  background: transparent;
+  color: var(--text-secondary);
+  cursor: pointer;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  transition: background-color 0.15s ease, color 0.15s ease;
+}
+
+.coach-panel__close svg { width: 16px; height: 16px; }
+
+.coach-panel__close:hover {
+  background: var(--bg-secondary);
+  color: var(--text-primary);
+}
+
+/* ----- Starter chips ----- */
+.coach-panel__chips {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.4rem;
+  padding: 0.75rem 1.1rem 0.25rem;
+}
+
+.coach-chip {
+  font: inherit;
+  font-size: 0.78rem;
+  color: var(--text-primary);
+  background: var(--bg-secondary);
+  border: 1px solid var(--border);
+  border-radius: 999px;
+  padding: 0.4rem 0.8rem;
+  cursor: pointer;
+  transition: background-color 0.15s ease, border-color 0.15s ease, transform 0.1s ease;
+}
+
+.coach-chip:hover:not(:disabled) {
+  border-color: var(--accent);
+  background: color-mix(in srgb, var(--accent) 10%, var(--bg-secondary));
+}
+
+.coach-chip:active:not(:disabled) { transform: translateY(1px); }
+
+.coach-chip:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+/* ----- Messages list ----- */
+.coach-panel__messages {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  gap: 0.8rem;
+  overflow-y: auto;
+  padding: 0.75rem 1.1rem 0.5rem;
+}
+
+.coach-panel__messages::-webkit-scrollbar { width: 5px; }
+.coach-panel__messages::-webkit-scrollbar-thumb {
+  background: var(--border);
+  border-radius: 3px;
+}
+
+.coach-msg {
+  display: flex;
+  flex-direction: column;
+  gap: 0.25rem;
+  max-width: 92%;
+}
+
+.coach-msg--user {
+  align-self: flex-end;
+  align-items: flex-end;
+}
+
+.coach-msg--assistant {
+  align-self: flex-start;
+  align-items: flex-start;
+}
+
+.coach-msg__label {
+  font-size: 0.65rem;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  color: var(--text-secondary);
+}
+
+.coach-msg__bubble {
+  padding: 0.6rem 0.85rem;
+  border-radius: 12px;
+  font-size: 0.87rem;
+  line-height: 1.5;
+  word-wrap: break-word;
+}
+
+.coach-msg--user .coach-msg__bubble {
+  background: var(--accent);
+  color: #ffffff;
+  border-bottom-right-radius: 4px;
+  white-space: pre-wrap;
+}
+
+.coach-msg--assistant .coach-msg__bubble {
+  background: var(--bg-secondary);
+  border: 1px solid var(--border);
+  color: var(--text-primary);
+  border-bottom-left-radius: 4px;
+}
+
+.coach-msg--error .coach-msg__bubble {
+  border-color: var(--danger);
+  color: var(--danger);
+}
+
+.coach-msg__model {
+  font-size: 0.62rem;
+  color: var(--text-secondary);
+  opacity: 0.7;
+}
+
+/* ----- Markdown inside assistant bubbles ----- */
+.coach-markdown p { margin: 0 0 0.5rem; }
+.coach-markdown p:last-child { margin-bottom: 0; }
+.coach-markdown strong { font-weight: 600; }
+.coach-markdown em { font-style: italic; }
+.coach-markdown ul,
+.coach-markdown ol {
+  margin: 0.3rem 0 0.5rem 1.1rem;
+  padding: 0;
+}
+.coach-markdown li { margin: 0.12rem 0; }
+.coach-markdown code {
+  font-family: 'JetBrains Mono', 'Fira Code', ui-monospace, monospace;
+  font-size: 0.85em;
+  background: var(--bg-primary);
+  padding: 0.08em 0.3em;
+  border-radius: 4px;
+  border: 1px solid var(--border);
+}
+.coach-markdown pre {
+  background: var(--bg-primary);
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  padding: 0.65rem;
+  margin: 0.4rem 0;
+  overflow-x: auto;
+}
+.coach-markdown pre code {
+  background: transparent;
+  border: none;
+  padding: 0;
+}
+.coach-markdown h1,
+.coach-markdown h2,
+.coach-markdown h3 {
+  margin: 0.5rem 0 0.25rem;
+  font-weight: 600;
+  line-height: 1.25;
+}
+.coach-markdown h1 { font-size: 1.1em; }
+.coach-markdown h2 { font-size: 1.05em; }
+.coach-markdown h3 { font-size: 1em; }
+
+/* ----- Typing indicator ----- */
+.coach-typing {
+  display: inline-flex;
+  gap: 4px;
+  padding: 0.65rem 0.85rem;
+  background: var(--bg-secondary);
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  border-bottom-left-radius: 4px;
+  width: fit-content;
+}
+
+.coach-typing span {
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  background: var(--text-secondary);
+  opacity: 0.5;
+  animation: coach-typing-bounce 1.2s infinite ease-in-out;
+}
+.coach-typing span:nth-child(2) { animation-delay: 0.15s; }
+.coach-typing span:nth-child(3) { animation-delay: 0.3s; }
+
+@keyframes coach-typing-bounce {
+  0%, 80%, 100% { transform: translateY(0); opacity: 0.4; }
+  40% { transform: translateY(-4px); opacity: 1; }
+}
+
+/* ----- Wakeup banner ----- */
+.coach-panel__wakeup {
+  font-size: 0.78rem;
+  color: var(--warning);
+  background: color-mix(in srgb, var(--warning) 12%, transparent);
+  border: 1px solid color-mix(in srgb, var(--warning) 40%, transparent);
+  padding: 0.45rem 0.7rem;
+  border-radius: 8px;
+  align-self: flex-start;
+}
+
+/* ----- Input bar ----- */
+.coach-input {
+  display: flex;
+  align-items: flex-end;
+  gap: 0.45rem;
+  background: var(--bg-secondary);
+  border-top: 1px solid var(--border);
+  padding: 0.6rem 0.75rem;
+  transition: background-color 0.15s ease;
+}
+
+.coach-input:focus-within {
+  background: color-mix(in srgb, var(--accent) 4%, var(--bg-secondary));
+}
+
+.coach-input__textarea {
+  flex: 1;
+  font: inherit;
+  font-size: 0.88rem;
+  line-height: 1.45;
+  color: var(--text-primary);
+  background: transparent;
+  border: none;
+  outline: none;
+  resize: none;
+  min-height: 1.4rem;
+  max-height: 6rem;
+  padding: 0.3rem 0.35rem;
+}
+
+.coach-input__textarea::placeholder {
+  color: var(--text-secondary);
+  opacity: 0.7;
+}
+
+.coach-input__textarea:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+}
+
+.coach-input__send {
+  flex-shrink: 0;
+  width: 34px;
+  height: 34px;
+  border-radius: 50%;
+  border: none;
+  background: var(--accent);
+  color: #ffffff;
+  cursor: pointer;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  transition: background-color 0.15s ease, transform 0.1s ease;
+}
+
+.coach-input__send svg { width: 15px; height: 15px; fill: currentColor; }
+
+.coach-input__send:hover:not(:disabled) { background: var(--accent-light); }
+.coach-input__send:active:not(:disabled) { transform: scale(0.95); }
+
+.coach-input__send:disabled {
+  opacity: 0.4;
+  cursor: not-allowed;
+}
+
+/* ----- Mobile — FAB shrinks to icon, panel becomes a bottom drawer ----- */
+@media (max-width: 640px) {
+  .coach-fab {
+    right: 1rem;
+    bottom: 1rem;
+    padding: 0.75rem;
+    width: 52px;
+    height: 52px;
+    justify-content: center;
+  }
+
+  .coach-fab__label {
+    display: none;
+  }
+
+  /* Bottom drawer: slides up from the bottom, leaves ~12vh of page visible
+     behind a dim scrim so the user keeps context instead of full takeover */
+  .coach-panel {
+    right: 0;
+    left: 0;
+    bottom: 0;
+    width: 100vw;
+    max-width: 100vw;
+    height: 85vh;
+    max-height: 85vh;
+    border-radius: 18px 18px 0 0;
+    border: 1px solid var(--border);
+    border-bottom: none;
+    transform-origin: bottom center;
+    transform: translateY(100%);
+    transition: transform 0.28s cubic-bezier(0.22, 0.61, 0.36, 1), opacity 0.2s ease;
+  }
+
+  .coach-panel--open {
+    transform: translateY(0);
+  }
+
+  /* Grab handle at the top of the drawer — signals "I can be dragged/closed" */
+  .coach-panel::before {
+    content: '';
+    position: absolute;
+    top: 8px;
+    left: 50%;
+    transform: translateX(-50%);
+    width: 40px;
+    height: 4px;
+    border-radius: 2px;
+    background: var(--border);
+    opacity: 0.8;
+  }
+
+  .coach-panel__header {
+    padding-top: 1.4rem;
+  }
+
+  /* Show the backdrop only on mobile (drawer mode) */
+  .coach-backdrop {
+    display: block;
+  }
+
+  .coach-hint {
+    right: 1rem;
+    bottom: 5rem;
+    max-width: calc(100vw - 2rem);
+  }
+}
+
+/* ----- Backdrop — hidden on desktop (popup doesn't need a scrim),
+   shown on mobile via the @media block above ----- */
+.coach-backdrop {
+  display: none;
+  position: fixed;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.4);
+  z-index: 100;
+  animation: coach-backdrop-in 0.22s ease-out both;
+  cursor: pointer;
+}
+
+@keyframes coach-backdrop-in {
+  from { opacity: 0; }
+  to { opacity: 1; }
+}
+
+/* ----- Print: hide entirely so downloaded PDF stays clean ----- */
+@media print {
+  .coach-fab,
+  .coach-panel,
+  .coach-hint {
+    display: none !important;
+  }
+}

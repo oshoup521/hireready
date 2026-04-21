@@ -1,0 +1,1 @@
+- [HireReady chatbot integration](project_hireready_chatbot.md) — porting Vani's LiteLLM chatbot into HireReady as a resume coach panel below the ReportCard.
