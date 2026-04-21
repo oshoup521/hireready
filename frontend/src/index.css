@@ -54,7 +54,7 @@ body.light {
 }
 
 html {
-  font-size: 14px;
+  font-size: 16px;
   scroll-behavior: smooth;
 }
 
@@ -295,7 +295,7 @@ button {
    ========================================================= */
 @media (max-width: 768px) {
   html {
-    font-size: 13px;
+    font-size: 15px;
   }
 
   .app-wrapper {
@@ -320,7 +320,7 @@ button {
 
 @media (max-width: 480px) {
   html {
-    font-size: 12.5px;
+    font-size: 14.5px;
   }
 
   .app-wrapper {

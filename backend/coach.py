@@ -73,29 +73,67 @@ def build_system_prompt(report: Dict[str, Any]) -> str:
     """
     Assemble the coach's system prompt. Every turn re-sends the full report
     so the model always has the user's data — stateless on the backend.
+
+    The prompt branches on report["mode"]:
+      - "resume_only" → ATS-readiness review (no JD uploaded). Coach must NOT
+        discuss keyword-match scores, missing keywords, or JD alignment —
+        those numbers don't exist in this mode.
+      - "ats_vs_jd"   → JD-comparison review. Coach can reference all scores
+        including keyword_match, matched/missing keywords, and JD text.
     """
     resume_text = (report.get("resume_text") or "")[:RESUME_CHAR_CAP]
     jd_text = (report.get("jd_text") or "")[:JD_CHAR_CAP]
+    mode = report.get("mode") or ("ats_vs_jd" if jd_text.strip() else "resume_only")
 
-    # Present the report as a compact structured block. The model reads JSON
-    # fine, but prose headings nudge it to reference the right numbers.
-    report_summary = (
-        f"Overall score: {report.get('overall_score', 'N/A')}/100\n"
-        f"Sub-scores — keyword match: {report.get('keyword_match_score', 'N/A')}, "
-        f"skills: {report.get('skills_score', 'N/A')}, "
-        f"experience: {report.get('experience_score', 'N/A')}, "
-        f"education: {report.get('education_score', 'N/A')}\n"
-        f"Sections found: {', '.join(report.get('sections_found') or []) or '(none)'}\n"
-        f"Sections missing: {', '.join(report.get('sections_missing') or []) or '(none)'}\n"
-        f"Matched keywords: {_format_keyword_list(report.get('matched_keywords'))}\n"
-        f"Missing keywords: {_format_keyword_list(report.get('missing_keywords'))}\n"
-        f"Extra keywords: {_format_keyword_list(report.get('extra_keywords'))}"
-    )
+    # ---- Mode-specific scorecard ----
+    # In resume_only mode, keyword_match_score is 0 because there's no JD to
+    # match against — the model should understand that and not call it a "gap".
+    if mode == "resume_only":
+        scorecard = (
+            f"Overall ATS-readiness score: {report.get('overall_score', 'N/A')}/100\n"
+            f"Sub-scores — skills breadth: {report.get('skills_score', 'N/A')}, "
+            f"experience: {report.get('experience_score', 'N/A')}, "
+            f"education: {report.get('education_score', 'N/A')}\n"
+            f"Sections found: {', '.join(report.get('sections_found') or []) or '(none)'}\n"
+            f"Sections missing: {', '.join(report.get('sections_missing') or []) or '(none)'}"
+        )
+        mode_header = (
+            "ANALYSIS MODE: ATS-readiness only (no job description was provided).\n"
+            "This score reflects how well the resume is structured for ATS parsing "
+            "and how broad/rich the candidate's skills, experience, and education are — "
+            "NOT how well it matches any specific job.\n\n"
+            "IMPORTANT rules for this mode:\n"
+            "- There is NO keyword-match score, NO missing keywords, NO JD comparison. "
+            "Do not invent or reference those — if the user asks about keyword matching "
+            "or JD fit, clearly explain that no JD was uploaded and offer to re-analyze "
+            "after they add one.\n"
+            "- Focus feedback on: section completeness, skills breadth, experience depth "
+            "(quantified achievements, action verbs), education clarity, formatting hygiene."
+        )
+    else:
+        scorecard = (
+            f"Overall match score: {report.get('overall_score', 'N/A')}/100\n"
+            f"Sub-scores — keyword match: {report.get('keyword_match_score', 'N/A')}, "
+            f"skills: {report.get('skills_score', 'N/A')}, "
+            f"experience: {report.get('experience_score', 'N/A')}, "
+            f"education: {report.get('education_score', 'N/A')}\n"
+            f"Sections found: {', '.join(report.get('sections_found') or []) or '(none)'}\n"
+            f"Sections missing: {', '.join(report.get('sections_missing') or []) or '(none)'}\n"
+            f"Matched keywords: {_format_keyword_list(report.get('matched_keywords'))}\n"
+            f"Missing keywords: {_format_keyword_list(report.get('missing_keywords'))}\n"
+            f"Extra keywords (in resume but not JD): {_format_keyword_list(report.get('extra_keywords'))}"
+        )
+        mode_header = (
+            "ANALYSIS MODE: Resume vs. Job Description comparison.\n"
+            "This score reflects how well this specific resume matches the target JD.\n\n"
+            "Focus feedback on: keyword alignment with the JD, missing must-have skills, "
+            "rewriting weak bullets to mirror JD language, section gaps vs. what the JD implies."
+        )
 
     jd_block = (
         f"\n\nJOB DESCRIPTION (first {JD_CHAR_CAP} chars):\n{jd_text}"
-        if jd_text.strip()
-        else "\n\nNo job description was provided — this is an ATS-readiness review only."
+        if mode == "ats_vs_jd" and jd_text.strip()
+        else ""
     )
 
     return (
@@ -106,12 +144,13 @@ def build_system_prompt(report: Dict[str, Any]) -> str:
         "- Warm but honest. Don't sugarcoat weak resumes; don't pile on either.\n"
         "- Skip robotic openers ('Certainly!', 'As an AI...'). Just answer.\n"
         "- Short questions → short answers (1–3 sentences). Complex asks → structured with bullets or numbered steps.\n"
-        "- Always reference the actual numbers from the report (e.g. 'your keyword match is 42 — here's why').\n"
+        "- Always reference the actual numbers from the report (e.g. 'your skills score is 62 — here's why').\n"
         "- When rewriting bullets, show before/after with quantified impact.\n"
         "- Format code / rewrites in fenced code blocks; use **bold** for key terms.\n\n"
         "Never mention which underlying model you are. You are HireReady Coach.\n\n"
+        f"=== {mode_header} ===\n\n"
         "=== CURRENT CANDIDATE'S REPORT ===\n"
-        f"{report_summary}"
+        f"{scorecard}"
         f"\n\nRESUME TEXT (first {RESUME_CHAR_CAP} chars):\n{resume_text}"
         f"{jd_block}"
     )

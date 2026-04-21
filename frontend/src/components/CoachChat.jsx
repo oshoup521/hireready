@@ -11,10 +11,19 @@ import './CoachChat.css'
  * (parent passes a different `reportKey`, which remounts the component).
  */
 
-const STARTER_CHIPS = [
+// Starter chips are mode-aware — ATS-only mode has no JD, so JD-comparison
+// chips don't make sense and are swapped out.
+const CHIPS_WITH_JD = [
   { id: 'why-score', label: 'Why is my score where it is?' },
   { id: 'rewrite-bullets', label: 'Rewrite my experience bullets for this JD' },
   { id: 'top-missing', label: 'Which missing keywords matter most?' },
+  { id: 'sections', label: 'What sections should I add?' },
+]
+
+const CHIPS_ATS_ONLY = [
+  { id: 'why-score-ats', label: 'Why is my ATS-readiness score this?' },
+  { id: 'strengthen-experience', label: 'How can I strengthen my experience section?' },
+  { id: 'skills-breadth', label: 'Are my skills broad enough?' },
   { id: 'sections', label: 'What sections should I add?' },
 ]
 
@@ -23,6 +32,9 @@ const CHIP_PROMPTS = {
   'rewrite-bullets': 'Pick 2-3 weak bullets from my experience section and rewrite them to better match this job description. Show before → after with quantified impact.',
   'top-missing': 'Of my missing keywords, which 5 should I prioritize adding, and why? Tell me where in my resume each one would naturally fit.',
   'sections': 'Which resume sections am I missing or under-using? For each, tell me what to put in it.',
+  'why-score-ats': 'Explain why my ATS-readiness score is what it is. Focus on section completeness, skills breadth, experience, and education — no JD was uploaded, so skip any keyword-matching discussion.',
+  'strengthen-experience': 'Review my experience section. Point out 2-3 specific bullets that are weak (vague, no numbers, passive voice) and rewrite them to be stronger. Show before → after.',
+  'skills-breadth': 'Look at the skills in my resume. Are they broad and current enough for my target roles? Suggest specific skills I should add based on what experienced candidates in my field typically list.',
 }
 
 const WAKEUP_DELAY_MS = 5000
@@ -32,6 +44,10 @@ export default function CoachChat({ report, apiUrl }) {
   const [isLoading, setIsLoading] = useState(false)
   const [isWakingUp, setIsWakingUp] = useState(false)
   const [isOpen, setIsOpen] = useState(false)
+  // Pick the right chip set for this report. Fallback to JD mode if the
+  // backend ever omits the field (older reports in localStorage history).
+  const isAtsOnly = report?.mode === 'resume_only'
+  const starterChips = isAtsOnly ? CHIPS_ATS_ONLY : CHIPS_WITH_JD
   // Show a one-time intro bubble next to the FAB so first-time users know what
   // it is. Auto-dismisses after 8s or when they open/close the panel once.
   const [showHint, setShowHint] = useState(() => {
@@ -191,7 +207,7 @@ export default function CoachChat({ report, apiUrl }) {
 
         {messages.length === 0 && (
           <div className="coach-panel__chips" role="list">
-            {STARTER_CHIPS.map((chip) => (
+            {starterChips.map((chip) => (
               <button
                 key={chip.id}
                 type="button"
