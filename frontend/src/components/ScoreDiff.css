@@ -252,6 +252,26 @@
 .diff-section-line--added   strong { color: var(--success); }
 .diff-section-line--removed strong { color: var(--danger); }
 
+/* Mobile: prevent subtitle overflow and let header wrap */
+@media (max-width: 480px) {
+  .diff-subtitle {
+    max-width: 100%;
+  }
+
+  .diff-header {
+    flex-wrap: wrap;
+    gap: 0.5rem;
+  }
+
+  .diff-title {
+    font-size: 0.85rem;
+  }
+
+  .diff-metrics {
+    grid-template-columns: 1fr;
+  }
+}
+
 /* Hide the diff panel in print / PDF export */
 @media print {
   .score-diff {

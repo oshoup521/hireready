@@ -27,6 +27,7 @@ from slowapi.errors import RateLimitExceeded
 from parser import extract_text
 from scorer import score_resume, score_resume_only
 from coach import CoachRequest, run_coach_chat
+from cover_letter import generate_cover_letter as _gen_cover_letter
 
 logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger("hireready")
@@ -308,4 +309,46 @@ async def coach_chat(request: Request, payload: CoachRequest):
         raise HTTPException(
             status_code=500,
             detail=f"Coach chat error: {type(exc).__name__}: {exc}",
+        )
+
+
+@app.post("/generate-cover-letter")
+@limiter.limit("10/minute")
+async def generate_cover_letter_endpoint(
+    request: Request,
+    resume_text: str = Form(...),
+    jd_text: Optional[str] = Form(""),
+    applicant_name: Optional[str] = Form(""),
+    company_name: Optional[str] = Form(""),
+    role_name: Optional[str] = Form(""),
+):
+    """
+    Generate a tailored cover letter draft from already-extracted resume + JD text.
+
+    Accepts multipart/form-data with:
+        resume_text    — plain text from the resume (required, already in frontend state)
+        jd_text        — plain text from the JD (optional but recommended)
+        applicant_name — pre-fill candidate name (auto-detected if omitted)
+        company_name   — target company (shown as 'your organisation' if omitted)
+        role_name      — target role title (auto-detected from JD if omitted)
+
+    Returns a JSON object with the generated letter and metadata used to build it.
+    """
+    if not resume_text or not resume_text.strip():
+        raise HTTPException(status_code=422, detail="resume_text is required.")
+
+    try:
+        result = _gen_cover_letter(
+            resume_text=resume_text,
+            jd_text=jd_text or "",
+            applicant_name=applicant_name or "",
+            company_name=company_name or "",
+            role_name=role_name or "",
+        )
+        return result
+    except Exception as exc:
+        logger.exception("Cover letter generation failed")
+        raise HTTPException(
+            status_code=500,
+            detail=f"Cover letter generation failed: {type(exc).__name__}: {exc}",
         )

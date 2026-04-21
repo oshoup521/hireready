@@ -1,0 +1,261 @@
+/* ---------------------------------------------------------------------- */
+/* CoverLetterGenerator.css                                               */
+/* All colors via CSS variables — no hardcoded hex values.                */
+/* ---------------------------------------------------------------------- */
+
+.clg-wrapper {
+  margin-top: 1.5rem;
+  border-radius: 12px;
+  border: 1px solid var(--border);
+  overflow: hidden;
+  background: var(--bg-card);
+}
+
+/* ---- Toggle button ---- */
+.clg-toggle {
+  width: 100%;
+  display: flex;
+  align-items: center;
+  gap: 0.6rem;
+  padding: 0.9rem 1.2rem;
+  background: transparent;
+  border: none;
+  cursor: pointer;
+  color: var(--text-primary);
+  font-size: 0.9rem;
+  font-weight: 600;
+  font-family: inherit;
+  text-align: left;
+  transition: background 0.15s ease;
+}
+
+.clg-toggle:hover {
+  background: color-mix(in srgb, var(--accent) 8%, transparent);
+}
+
+.clg-toggle-icon { font-size: 1.1rem; }
+
+.clg-toggle-text { flex: 1; }
+
+.clg-toggle-arrow {
+  font-size: 0.7rem;
+  color: var(--text-secondary);
+}
+
+/* ---- Body ---- */
+.clg-body {
+  padding: 1.1rem 1.25rem 1.4rem;
+  border-top: 1px solid var(--border);
+  display: flex;
+  flex-direction: column;
+  gap: 0.9rem;
+}
+
+.clg-desc {
+  font-size: 0.82rem;
+  color: var(--text-secondary);
+  line-height: 1.55;
+  margin: 0;
+}
+
+/* ---- Inputs ---- */
+.clg-inputs {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 0.75rem;
+}
+
+.clg-field {
+  display: flex;
+  flex-direction: column;
+  gap: 0.3rem;
+}
+
+.clg-label {
+  font-size: 0.72rem;
+  font-weight: 600;
+  color: var(--text-secondary);
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+}
+
+.clg-input {
+  background: var(--bg-secondary);
+  border: 1px solid var(--border);
+  border-radius: 6px;
+  padding: 0.5rem 0.7rem;
+  font-size: 0.85rem;
+  font-family: inherit;
+  color: var(--text-primary);
+  transition: border-color 0.15s ease;
+  outline: none;
+}
+
+.clg-input:focus {
+  border-color: var(--accent);
+}
+
+.clg-input::placeholder {
+  color: var(--text-secondary);
+  opacity: 0.6;
+}
+
+/* ---- Generate button ---- */
+.clg-generate-btn {
+  align-self: flex-start;
+  background: var(--accent);
+  color: #fff;
+  border: none;
+  border-radius: 8px;
+  padding: 0.55rem 1.1rem;
+  font-size: 0.85rem;
+  font-weight: 600;
+  font-family: inherit;
+  cursor: pointer;
+  transition: background 0.15s ease, opacity 0.15s ease;
+}
+
+.clg-generate-btn:hover:not(:disabled) {
+  background: var(--accent-light);
+}
+
+.clg-generate-btn:disabled {
+  opacity: 0.45;
+  cursor: not-allowed;
+}
+
+/* ---- Error ---- */
+.clg-error {
+  font-size: 0.8rem;
+  color: var(--danger);
+  margin: 0;
+}
+
+/* ---- Result block ---- */
+.clg-result {
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+}
+
+/* Skills used pills */
+.clg-skills-row {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 0.4rem;
+}
+
+.clg-skills-label {
+  font-size: 0.72rem;
+  color: var(--text-secondary);
+  font-weight: 500;
+  margin-right: 0.1rem;
+}
+
+.clg-skill-pill {
+  font-size: 0.72rem;
+  font-weight: 500;
+  padding: 0.18rem 0.55rem;
+  border-radius: 999px;
+  background: color-mix(in srgb, var(--success) 14%, transparent);
+  color: var(--success);
+  border: 1px solid color-mix(in srgb, var(--success) 28%, transparent);
+}
+
+/* Textarea */
+.clg-textarea {
+  width: 100%;
+  box-sizing: border-box;
+  background: var(--bg-secondary);
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  padding: 0.85rem 0.95rem;
+  font-size: 0.82rem;
+  font-family: 'Courier New', monospace;
+  line-height: 1.65;
+  color: var(--text-primary);
+  resize: vertical;
+  outline: none;
+  transition: border-color 0.15s ease;
+}
+
+.clg-textarea:focus {
+  border-color: var(--accent);
+}
+
+/* Action buttons row */
+.clg-actions {
+  display: flex;
+  gap: 0.6rem;
+  flex-wrap: wrap;
+}
+
+.clg-action-btn {
+  padding: 0.45rem 0.9rem;
+  border-radius: 7px;
+  font-size: 0.82rem;
+  font-weight: 600;
+  font-family: inherit;
+  cursor: pointer;
+  transition: background 0.15s ease;
+  border: 1px solid var(--border);
+}
+
+.clg-copy-btn {
+  background: var(--bg-secondary);
+  color: var(--text-primary);
+}
+
+.clg-copy-btn:hover {
+  background: color-mix(in srgb, var(--accent) 10%, var(--bg-secondary));
+  border-color: var(--accent);
+}
+
+.clg-download-btn {
+  background: var(--accent);
+  color: #fff;
+  border-color: var(--accent);
+}
+
+.clg-download-btn:hover {
+  background: var(--accent-light);
+  border-color: var(--accent-light);
+}
+
+/* Disclaimer */
+.clg-disclaimer {
+  font-size: 0.74rem;
+  color: var(--text-secondary);
+  margin: 0;
+  padding: 0.45rem 0.65rem;
+  background: color-mix(in srgb, var(--warning) 8%, transparent);
+  border-left: 3px solid var(--warning);
+  border-radius: 4px;
+  line-height: 1.5;
+}
+
+/* ---------------------------------------------------------------------- */
+/* Responsive                                                              */
+/* ---------------------------------------------------------------------- */
+@media (max-width: 540px) {
+  .clg-inputs {
+    grid-template-columns: 1fr;
+  }
+
+  .clg-actions {
+    flex-direction: column;
+  }
+
+  .clg-action-btn {
+    width: 100%;
+    text-align: center;
+  }
+}
+
+/* Hide from print output */
+@media print {
+  .clg-wrapper {
+    display: none;
+  }
+}

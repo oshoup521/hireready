@@ -461,6 +461,60 @@
 .gap-item strong { color: var(--text-primary); }
 .gap-icon { flex-shrink: 0; }
 
+/* ---------------------------------------------------------------------- */
+/* Section Order Recommendations                                           */
+/* ---------------------------------------------------------------------- */
+.section-order-row {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 0.4rem;
+  margin-bottom: 0.75rem;
+}
+
+.section-order-label {
+  font-size: 0.72rem;
+  color: var(--text-secondary);
+  font-weight: 500;
+  margin-right: 0.2rem;
+  white-space: nowrap;
+}
+
+.section-order-chip {
+  font-size: 0.72rem;
+  font-weight: 500;
+  padding: 0.18rem 0.5rem;
+  border-radius: 999px;
+  background: color-mix(in srgb, var(--accent) 12%, transparent);
+  color: var(--accent-light);
+  border: 1px solid color-mix(in srgb, var(--accent) 25%, transparent);
+  white-space: nowrap;
+}
+
+.section-order-tips {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+}
+
+.section-order-tip {
+  display: flex;
+  align-items: flex-start;
+  gap: 0.5rem;
+  font-size: 0.82rem;
+  color: var(--text-secondary);
+  line-height: 1.5;
+  padding: 0.45rem 0.65rem;
+  background: color-mix(in srgb, var(--warning) 8%, transparent);
+  border-left: 3px solid var(--warning);
+  border-radius: 4px;
+}
+
+.section-order-tip-icon { flex-shrink: 0; }
+
 /* Stack sections columns on small screens */
 @media (max-width: 480px) {
   .sections-grid {

@@ -32,7 +32,7 @@
 
 - 🔒 **Offline scoring** — spaCy runs locally on the backend. No LLMs in the scoring path, no OpenAI keys required for the score itself.
 - ⚡ **Instant results** — Full report in seconds.
-- 🎯 **Far beyond keyword match** — Formatting checks, grammar, action verbs, quantified achievements, job title relevance, **years-of-experience fit, seniority mismatch detection, and employment-gap analysis**.
+- 🎯 **Far beyond keyword match** — Formatting checks, grammar, action verbs, quantified achievements, job title relevance, **years-of-experience fit, seniority mismatch detection, employment-gap analysis, section order recommendations, and bullet-density flagging**.
 - 🧠 **Skill synonyms built in** — `js` ↔ `javascript`, `k8s` ↔ `kubernetes`, `ml` ↔ `machine learning`, `postgres` ↔ `postgresql`, and many more resolve to a single canonical form before matching.
 - 📋 **Paste JD as text** — No need to save a JD to PDF. Paste it straight from LinkedIn / Greenhouse / a careers page.
 - 📊 **Visual report card** — Scores, charts, keyword pills, section audit, rewrite suggestions — all in one clean UI.
@@ -79,6 +79,7 @@
 <tr bgcolor="#161b22"><td>🎯</td><td><b>Job Title Relevance</b></td><td>Matches your titles to JD seniority and role</td></tr>
 <tr bgcolor="#0d1117"><td>📖</td><td><b>Readability Score</b></td><td>Flesch Reading Ease — flags overly complex language</td></tr>
 <tr bgcolor="#161b22"><td>🚩</td><td><b>Buzzword Detector</b></td><td>Flags overused clichés ("synergy", "passionate", "rockstar"…)</td></tr>
+<tr bgcolor="#0d1117"><td>📄</td><td><b>Bullet Density Check</b></td><td>Detects dense prose paragraphs in Experience/Projects that should be bullet points</td></tr>
 </tbody>
 </table>
 
@@ -112,7 +113,8 @@
 <tr bgcolor="#0d1117"><td>❌</td><td><b>Missing Keywords</b></td><td>JD keywords absent from resume — most actionable</td></tr>
 <tr bgcolor="#161b22"><td>➕</td><td><b>Extra Keywords</b></td><td>Resume keywords beyond the JD scope</td></tr>
 <tr bgcolor="#0d1117"><td>📋</td><td><b>Section Audit</b></td><td>Finds and flags missing resume sections</td></tr>
-<tr bgcolor="#161b22"><td>⎘</td><td><b>Copy Missing Keywords</b></td><td>Dropdown with <b>Copy as list</b> and <b>Copy comma-separated</b> formats</td></tr>
+<tr bgcolor="#161b22"><td>🔀</td><td><b>Section Order Recommendations</b></td><td>Detects section order; suggests optimal ordering for experienced vs entry-level candidates</td></tr>
+<tr bgcolor="#0d1117"><td>⎘</td><td><b>Copy Missing Keywords</b></td><td>Dropdown with <b>Copy as list</b> and <b>Copy comma-separated</b> formats</td></tr>
 </tbody>
 </table>
 
@@ -189,6 +191,7 @@
 <tr bgcolor="#0d1117"><td>⬇️</td><td><b>Export History CSV</b></td><td>Download all past runs as a spreadsheet</td></tr>
 <tr bgcolor="#161b22"><td>🗑️</td><td><b>Clear History</b></td><td>Wipes history and dismisses open report</td></tr>
 <tr bgcolor="#0d1117"><td>📝</td><td><b>Cover Letter Analyzer</b></td><td>Upload cover letter alongside resume — JD match score shown</td></tr>
+<tr bgcolor="#161b22"><td>✉️</td><td><b>Cover Letter Generator</b></td><td>Generates a tailored cover letter draft from your resume + JD — template-based, no LLM, fully offline</td></tr>
 <tr bgcolor="#161b22"><td>👤</td><td><b>Role-Specific Scoring</b></td><td>Adjusted weights for Software Engineer / PM / Data Scientist</td></tr>
 <tr bgcolor="#0d1117"><td>🏢</td><td><b>ATS System Presets</b></td><td>Greenhouse / Workday / Lever — each applies its own scoring rules</td></tr>
 <tr bgcolor="#161b22"><td>🌙</td><td><b>Dark / Light Theme</b></td><td>Toggle with preference saved in localStorage</td></tr>
@@ -236,10 +239,11 @@
 ├── 📄 README.md
 ├── 📄 CLAUDE.md                 # Original project spec / blueprint
 ├── 🐍 backend/
-│   ├── main.py                  # FastAPI app: /health, /analyze, /compare, /chat
+│   ├── main.py                  # FastAPI app: /health, /analyze, /compare, /chat, /generate-cover-letter
 │   ├── scorer.py                # spaCy NLP scoring engine (all scoring logic)
 │   ├── parser.py                # PDF + DOCX text extractor
 │   ├── coach.py                 # LiteLLM Resume Coach chatbot + fallback pool
+│   ├── cover_letter.py          # Template-based cover letter generator (no LLM)
 │   ├── generate_samples.py      # Builds the sample resume / JD PDFs
 │   ├── requirements.txt
 │   └── .env.example
@@ -265,8 +269,10 @@
             ├── ScoreHistory.jsx     # localStorage history + trend chart + CSV export
             ├── ScoreShareCard.jsx   # Spotify-Wrapped-style PNG share card
             ├── PDFViewer.jsx        # In-browser PDF preview
-            ├── CompareMode.jsx      # Multi-JD side-by-side comparison (up to 5)
-            └── CoachChat.jsx        # Resume Coach chatbot panel
+            ├── CompareMode.jsx           # Multi-JD side-by-side comparison (up to 5)
+            ├── CoachChat.jsx             # Resume Coach chatbot panel
+            ├── CoverLetterGenerator.jsx  # Tailored cover letter draft generator
+            └── ScoreDiff.jsx             # Score delta banner vs previous run
 ```
 
 ---
@@ -453,6 +459,13 @@ Accepts `multipart/form-data`. The JD is optional — omit it to run in **ATS-on
   "extra_keywords": ["django", "celery"],
   "sections_found": ["Experience", "Education", "Skills"],
   "sections_missing": ["Summary", "Certifications"],
+  "section_order": ["Education", "Skills", "Experience"],
+  "section_order_suggestions": [
+    "For experienced candidates, move Experience above Skills — it carries more weight."
+  ],
+  "bullet_density_issues": [
+    "Dense paragraph detected near the 'Experience' section — break this into 2–4 bullet points."
+  ],
 
   "cover_letter_score": 72,
   "cover_letter_matched": ["python", "rest api"],
@@ -523,6 +536,35 @@ Resume Coach chatbot. Requires at least one configured provider API key on the b
 ```
 
 Returns `503` if every provider in the fallback pool fails or none are configured.
+
+### `POST /generate-cover-letter`
+
+Generates a tailored cover letter draft. Fully offline — no LLM, template-based.
+
+<table>
+<thead><tr bgcolor="#1f2937"><th>Field</th><th>Type</th><th>Description</th></tr></thead>
+<tbody>
+<tr bgcolor="#161b22"><td><code>resume_text</code></td><td>String</td><td><b>Required</b> — plain text already extracted from the resume (available in <code>report.resume_text</code>)</td></tr>
+<tr bgcolor="#0d1117"><td><code>jd_text</code></td><td>String</td><td>Optional — improves skill matching when provided</td></tr>
+<tr bgcolor="#161b22"><td><code>applicant_name</code></td><td>String</td><td>Optional — auto-detected from resume top if omitted</td></tr>
+<tr bgcolor="#0d1117"><td><code>company_name</code></td><td>String</td><td>Optional — shown as "your organisation" if omitted</td></tr>
+<tr bgcolor="#161b22"><td><code>role_name</code></td><td>String</td><td>Optional — auto-detected from JD if omitted</td></tr>
+</tbody>
+</table>
+
+**Response:**
+
+```json
+{
+  "cover_letter": "Dear Hiring Manager,\n\nI am writing to express…",
+  "detected_name": "Jane Doe",
+  "detected_role": "Senior Software Engineer",
+  "matched_skills_used": ["python", "react", "postgresql"],
+  "achievement_used": "Reduced API latency by 40% through caching layer redesign"
+}
+```
+
+Rate-limited to **10 requests / minute** per IP.
 
 ---
 

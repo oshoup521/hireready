@@ -139,6 +139,9 @@ export default function ReportCard({ report, previousEntry }) {
     extra_keywords,
     sections_found,
     sections_missing,
+    section_order,
+    section_order_suggestions,
+    bullet_density_issues,
     suggestions,
     resume_word_count,
     jd_word_count,
@@ -296,6 +299,15 @@ export default function ReportCard({ report, previousEntry }) {
             )}
           </>
         )}
+
+        {/* Bullet Density Issues */}
+        {bullet_density_issues?.length > 0 && (
+          <DetailPanel title={`${bullet_density_issues.length} bullet-density issue(s)`} color="var(--warning)">
+            {bullet_density_issues.map((issue, i) => (
+              <div key={i} className="detail-issue">📄 {issue}</div>
+            ))}
+          </DetailPanel>
+        )}
       </div>
 
       {/* 3b — Experience Fit: years-of-experience, seniority, employment gaps.
@@ -424,6 +436,31 @@ export default function ReportCard({ report, previousEntry }) {
           </div>
         </div>
       </div>
+
+      {/* 5b — Section Order Recommendations */}
+      {section_order_suggestions?.length > 0 && (
+        <div className="card">
+          <h3 className="section-title">Section Order Recommendations</h3>
+          {section_order?.length > 0 && (
+            <div className="section-order-row">
+              <span className="section-order-label">Current order:</span>
+              {section_order.map((s, i) => (
+                <span key={s} className="section-order-chip">
+                  {i + 1}. {s}
+                </span>
+              ))}
+            </div>
+          )}
+          <ul className="section-order-tips">
+            {section_order_suggestions.map((tip, i) => (
+              <li key={i} className="section-order-tip">
+                <span className="section-order-tip-icon">🔀</span>
+                {tip}
+              </li>
+            ))}
+          </ul>
+        </div>
+      )}
 
       {/* 6 — Suggestions */}
       <div className="card">

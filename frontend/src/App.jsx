@@ -6,6 +6,7 @@ import ResumeTextViewer from './components/ResumeTextViewer.jsx'
 import ScoreHistory, { loadHistory, saveToHistory, clearHistory, deleteHistoryEntry } from './components/ScoreHistory.jsx'
 import CompareMode from './components/CompareMode.jsx'
 import CoachChat from './components/CoachChat.jsx'
+import CoverLetterGenerator from './components/CoverLetterGenerator.jsx'
 
 // In production VITE_API_URL is the full Render URL.
 // Locally it's empty — Vite's proxy forwards /analyze and /health to :8000.
@@ -180,6 +181,8 @@ export default function App() {
           </div>
           {/* Resume Coach — remounts on each new report so chat history resets */}
           <CoachChat key={`coach-${reportKey}`} report={report} apiUrl={API_URL} />
+          {/* Cover Letter Generator */}
+          <CoverLetterGenerator report={report} apiUrl={API_URL} />
         </>
       )}
     </div>

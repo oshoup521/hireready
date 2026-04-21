@@ -1509,6 +1509,165 @@ def extract_keywords(text: str) -> list[str]:
     return keywords
 
 
+# ---------------------------------------------------------------------------
+# Section-order detection & recommendations
+# ---------------------------------------------------------------------------
+
+def detect_section_order(text: str) -> list[str]:
+    """
+    Return the resume's sections in the order they physically appear (top → bottom).
+
+    Iterates over each line and checks whether it matches the heading keywords
+    from SECTION_KEYWORDS.  The first matching line for each section wins.
+    """
+    found: dict[str, int] = {}
+    lines = text.split("\n")
+    for i, line in enumerate(lines):
+        line_lower = line.strip().lower()
+        if not line_lower:
+            continue
+        for section, keywords in SECTION_KEYWORDS.items():
+            if section not in found:
+                for kw in keywords:
+                    # Word-boundary-aware match so "experience" doesn't hit "inexperienced"
+                    if re.search(r"(?<![a-z])" + re.escape(kw) + r"(?![a-z])", line_lower):
+                        found[section] = i
+                        break
+    return [s for s, _ in sorted(found.items(), key=lambda x: x[1])]
+
+
+def get_section_order_suggestions(
+    section_order: list[str],
+    candidate_years: float = 0.0,
+) -> list[str]:
+    """
+    Return actionable tips for reordering resume sections.
+
+    Optimal order:
+    - Experienced (≥2 yrs): Summary → Experience → Skills → Education → Projects → Certifications
+    - Entry-level  (<2 yrs): Summary → Education  → Skills → Projects  → Experience → Certifications
+    """
+    tips: list[str] = []
+    if len(section_order) < 2:
+        return tips
+
+    def idx(s: str):
+        return section_order.index(s) if s in section_order else None
+
+    # Rule 1 — Summary should be first (or very near the top)
+    summary_pos = idx("Summary")
+    if summary_pos is not None and summary_pos > 1:
+        tips.append(
+            "Your Summary/Objective section appears lower on the page. "
+            "Move it to the very top — recruiters spend ~6 seconds on a first pass."
+        )
+
+    exp_pos    = idx("Experience")
+    edu_pos    = idx("Education")
+    skills_pos = idx("Skills")
+    proj_pos   = idx("Projects")
+    cert_pos   = idx("Certifications")
+
+    if candidate_years >= 2:
+        # Experienced: Work Experience should precede Education
+        if exp_pos is not None and edu_pos is not None and edu_pos < exp_pos:
+            tips.append(
+                f"Your Education section appears before Experience. For candidates with "
+                f"{candidate_years:.0f}+ years of work history, move Experience higher — "
+                "your career track matters more than your degree to most hiring managers."
+            )
+        # Skills should sit near the top (right after Summary)
+        if skills_pos is not None and exp_pos is not None and skills_pos > exp_pos + 1:
+            tips.append(
+                "Your Skills section is buried after the Experience block. "
+                "Moving it higher (right after Summary) lets ATS systems identify your "
+                "technical stack at maximum keyword-density position."
+            )
+    else:
+        # Entry-level: Education first is fine, but Skills should precede Projects
+        if skills_pos is not None and edu_pos is not None and skills_pos > edu_pos + 2:
+            tips.append(
+                "For entry-level candidates, placing your Skills section right after Education "
+                "increases keyword density early in the document where ATS scores it highest."
+            )
+        # Projects before Experience is a plus for juniors
+        if proj_pos is not None and exp_pos is not None and exp_pos < proj_pos:
+            tips.append(
+                "Consider placing your Projects section before Work Experience — "
+                "hands-on projects demonstrate practical skills more compellingly "
+                "than limited work history at this career stage."
+            )
+
+    # Certifications before Projects looks odd in most cases
+    if proj_pos is not None and cert_pos is not None and cert_pos < proj_pos:
+        tips.append(
+            "Projects usually carry more weight with hiring managers than Certifications — "
+            "consider swapping their order."
+        )
+
+    return tips
+
+
+# ---------------------------------------------------------------------------
+# Bullet-point density check
+# ---------------------------------------------------------------------------
+
+def check_bullet_density(resume_text: str) -> list[str]:
+    """
+    Flag areas of the resume that use dense prose instead of bullet points.
+
+    A "prose block" is 3+ consecutive non-empty lines where every line is
+    longer than 50 characters and none starts with a bullet symbol or is a
+    recognised section heading.  Prose blocks are harder for ATS to parse
+    and slower for recruiters to scan.
+
+    Returns up to 3 issue strings with contextual section labels.
+    """
+    issues: list[str] = []
+    _BULLET_START = re.compile(r"^\s*[-•*–—]\s+|^\s*\d+[.)]\s+")
+    # Flat set of heading keywords for fast membership tests
+    _ALL_HEADING_KWS: set[str] = {kw for kws in SECTION_KEYWORDS.values() for kw in kws}
+
+    lines = resume_text.split("\n")
+    consecutive = 0
+    section_label = "your resume"
+
+    for line in lines:
+        stripped = line.strip()
+        if not stripped:
+            consecutive = 0
+            continue
+
+        # Detect section headings to improve the issue message context
+        if stripped.lower() in _ALL_HEADING_KWS or any(
+            re.search(r"(?<![a-z])" + re.escape(kw) + r"(?![a-z])", stripped.lower())
+            for kw in _ALL_HEADING_KWS
+        ):
+            consecutive = 0
+            section_label = stripped.title()
+            continue
+
+        # Bullet lines or short lines reset the counter
+        if _BULLET_START.match(line) or len(stripped) <= 50:
+            consecutive = 0
+            continue
+
+        # Substantive prose line
+        consecutive += 1
+        if consecutive == 3:
+            issues.append(
+                f"Dense paragraph detected near the '{section_label}' section — "
+                "break this into 2–4 bullet points so ATS parsers and recruiters "
+                "can scan it in seconds."
+            )
+            consecutive = 0  # reset; don't keep flagging the same block
+
+        if len(issues) >= 3:
+            break
+
+    return issues
+
+
 def score_resume(resume_text: str, jd_text: str, ats_preset: str = None, cover_letter_text: str = None) -> dict:
     """
     Core scoring function — compares a resume against a job description.
@@ -1767,6 +1926,19 @@ def score_resume(resume_text: str, jd_text: str, ats_preset: str = None, cover_l
     jd_word_count = len(jd_text.split())
 
     # ------------------------------------------------------------------
+    # 20. Section order analysis
+    # ------------------------------------------------------------------
+    section_order = detect_section_order(resume_text)
+    section_order_suggestions = get_section_order_suggestions(
+        section_order, exp_fit["candidate_years"]
+    )
+
+    # ------------------------------------------------------------------
+    # 21. Bullet-point density check
+    # ------------------------------------------------------------------
+    bullet_density_issues = check_bullet_density(resume_text)
+
+    # ------------------------------------------------------------------
     # Return the complete result dict
     # ------------------------------------------------------------------
     return {
@@ -1814,6 +1986,9 @@ def score_resume(resume_text: str, jd_text: str, ats_preset: str = None, cover_l
         "extra_keywords": extra_keywords,
         "sections_found": sections_found,
         "sections_missing": sections_missing,
+        "section_order": section_order,
+        "section_order_suggestions": section_order_suggestions,
+        "bullet_density_issues": bullet_density_issues,
         "suggestions": suggestions,
         "resume_word_count": resume_word_count,
         "jd_word_count": jd_word_count,
@@ -2000,6 +2175,19 @@ def score_resume_only(resume_text: str, ats_preset: str = None) -> dict:
         )
 
     # ------------------------------------------------------------------
+    # Section order analysis
+    # ------------------------------------------------------------------
+    section_order = detect_section_order(resume_text)
+    section_order_suggestions = get_section_order_suggestions(
+        section_order, exp_fit["candidate_years"]
+    )
+
+    # ------------------------------------------------------------------
+    # Bullet-point density check
+    # ------------------------------------------------------------------
+    bullet_density_issues = check_bullet_density(resume_text)
+
+    # ------------------------------------------------------------------
     # Return the result dict (compatible with ReportCard schema)
     # ------------------------------------------------------------------
     return {
@@ -2047,6 +2235,9 @@ def score_resume_only(resume_text: str, ats_preset: str = None) -> dict:
         "extra_keywords": resume_keywords[:50],  # Top 50 resume keywords
         "sections_found": sections_found,
         "sections_missing": sections_missing,
+        "section_order": section_order,
+        "section_order_suggestions": section_order_suggestions,
+        "bullet_density_issues": bullet_density_issues,
         "suggestions": suggestions,
         "resume_word_count": len(resume_text.split()),
         "jd_word_count": 0,
