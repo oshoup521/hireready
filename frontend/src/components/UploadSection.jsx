@@ -7,7 +7,6 @@ export default function UploadSection({ onAnalyze, onReset, hasReport, isLoading
   const [jdFile, setJdFile] = useState(null)
   const [coverLetterFile, setCoverLetterFile] = useState(null)
   const [showCoverLetter, setShowCoverLetter] = useState(false)
-  const [role, setRole] = useState('')
   const [atsPreset, setAtsPreset] = useState('')
   const [resumeDragOver, setResumeDragOver] = useState(false)
   const [jdDragOver, setJdDragOver] = useState(false)
@@ -54,7 +53,6 @@ export default function UploadSection({ onAnalyze, onReset, hasReport, isLoading
       resumeFile,
       mode === 'ats_vs_jd' ? jdFile : null,
       showCoverLetter ? coverLetterFile : null,
-      role || null,
       atsPreset || null,
     )
   }
@@ -175,24 +173,8 @@ export default function UploadSection({ onAnalyze, onReset, hasReport, isLoading
         </button>
       </div>
 
-      {/* Advanced options row: role + ATS preset + cover letter toggle */}
+      {/* Advanced options row: ATS preset + cover letter toggle */}
       <div className="advanced-options">
-        {/* Role selector */}
-        <div className="adv-field">
-          <label className="adv-label" htmlFor="role-select">Role</label>
-          <select
-            id="role-select"
-            className="adv-select"
-            value={role}
-            onChange={(e) => setRole(e.target.value)}
-          >
-            <option value="">General</option>
-            <option value="software_engineer">Software Engineer</option>
-            <option value="product_manager">Product Manager</option>
-            <option value="data_scientist">Data Scientist</option>
-          </select>
-        </div>
-
         {/* ATS preset selector */}
         <div className="adv-field">
           <label className="adv-label" htmlFor="ats-select">ATS System</label>

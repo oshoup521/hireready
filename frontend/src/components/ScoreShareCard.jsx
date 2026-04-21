@@ -22,7 +22,6 @@ export default function ScoreShareCard({ report, onClose }) {
     experience_score = 0,
     education_score = 0,
     mode,
-    role,
     ats_preset,
   } = report
 
@@ -180,14 +179,11 @@ export default function ScoreShareCard({ report, onClose }) {
       ctx.fill()
     })
 
-    // Bottom row: role + preset
+    // Bottom row: preset
     const metaY = barTop + bars.length * barGap + 28
     ctx.font = '11px Inter, sans-serif'
     ctx.fillStyle = 'rgba(255,255,255,0.3)'
-    const parts = []
-    if (role && role !== 'default') parts.push(`Role: ${role.replace('_', ' ')}`)
-    if (ats_preset) parts.push(`ATS: ${ats_preset}`)
-    if (parts.length) ctx.fillText(parts.join('  ·  '), 40, metaY)
+    if (ats_preset) ctx.fillText(`ATS: ${ats_preset}`, 40, metaY)
 
     // Footer
     ctx.font = '11px Inter, sans-serif'
@@ -269,10 +265,9 @@ export default function ScoreShareCard({ report, onClose }) {
             ))}
           </div>
 
-          {(role && role !== 'default') || ats_preset ? (
+          {ats_preset ? (
             <div className="share-meta">
-              {role && role !== 'default' && <span>Role: {role.replace('_', ' ')}</span>}
-              {ats_preset && <span>ATS: {ats_preset}</span>}
+              <span>ATS: {ats_preset}</span>
             </div>
           ) : null}
 

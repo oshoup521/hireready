@@ -57,7 +57,7 @@ export default function App() {
   }
 
   // Submit resume (and optionally JD/cover letter) to the backend
-  async function analyzeResume(resumeFile, jdFile = null, coverLetterFile = null, role = null, atsPreset = null) {
+  async function analyzeResume(resumeFile, jdFile = null, coverLetterFile = null, atsPreset = null) {
     setIsLoading(true)
     setIsWakingUp(false)
     setError(null)
@@ -76,7 +76,6 @@ export default function App() {
       // Only append jd when provided (null = ATS-only mode)
       if (jdFile) formData.append('jd', jdFile)
       if (coverLetterFile) formData.append('cover_letter', coverLetterFile)
-      if (role) formData.append('role', role)
       if (atsPreset) formData.append('ats_preset', atsPreset)
 
       const response = await fetch(`${API_URL}/analyze`, {

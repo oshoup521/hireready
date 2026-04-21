@@ -173,33 +173,13 @@ BUZZWORDS = {
 }
 
 # ---------------------------------------------------------------------------
-# Role-specific scoring weights
+# Scoring weights used to compute the overall score in JD-comparison mode
 # ---------------------------------------------------------------------------
-ROLE_WEIGHTS = {
-    "software_engineer": {
-        "keyword": 0.35,
-        "skills":  0.30,
-        "experience": 0.25,
-        "education": 0.10,
-    },
-    "product_manager": {
-        "keyword": 0.30,
-        "skills":  0.20,
-        "experience": 0.35,
-        "education": 0.15,
-    },
-    "data_scientist": {
-        "keyword": 0.30,
-        "skills":  0.35,
-        "experience": 0.20,
-        "education": 0.15,
-    },
-    "default": {
-        "keyword": 0.40,
-        "skills":  0.25,
-        "experience": 0.20,
-        "education": 0.15,
-    },
+SCORE_WEIGHTS = {
+    "keyword": 0.40,
+    "skills":  0.25,
+    "experience": 0.20,
+    "education": 0.15,
 }
 
 # ---------------------------------------------------------------------------
@@ -235,15 +215,16 @@ _PASSIVE_AUX = re.compile(
     r"\b(was|were|been|being|is|are|am)\s+\w+ed\b", re.IGNORECASE
 )
 
-# Weak resume openers that should be replaced with action verbs
+# Weak resume openers that should be replaced with action verbs.
+# Use non-capturing groups so re.findall returns full matched strings, not tuples.
 _WEAK_OPENERS = [
     r"\bresponsible for\b",
-    r"\bhelped (with|to)\b",
+    r"\bhelped (?:with|to)\b",
     r"\bworked on\b",
-    r"\bassisted (with|in)\b",
-    r"\bpart of (the|a)\b",
+    r"\bassisted (?:with|in)\b",
+    r"\bpart of (?:the|a)\b",
     r"\binvolved in\b",
-    r"\bsupported (the|a)\b",
+    r"\bsupported (?:the|a)\b",
 ]
 _WEAK_OPENER_RE = re.compile("|".join(_WEAK_OPENERS), re.IGNORECASE)
 
@@ -931,7 +912,7 @@ def extract_keywords(text: str) -> list[str]:
     return keywords
 
 
-def score_resume(resume_text: str, jd_text: str, role: str = None, ats_preset: str = None, cover_letter_text: str = None) -> dict:
+def score_resume(resume_text: str, jd_text: str, ats_preset: str = None, cover_letter_text: str = None) -> dict:
     """
     Core scoring function — compares a resume against a job description.
 
@@ -1013,20 +994,18 @@ def score_resume(resume_text: str, jd_text: str, role: str = None, ats_preset: s
         education_score = 0
 
     # ------------------------------------------------------------------
-    # 6. overall_score (weighted average — role-adjusted)
+    # 6. overall_score (weighted average)
     # ------------------------------------------------------------------
-    weights = ROLE_WEIGHTS.get(role or "default", ROLE_WEIGHTS["default"])
-
     # Apply ATS preset keyword / skills boost before weighting
     preset = ATS_PRESETS.get(ats_preset or "", None)
     eff_keyword = min(100, round(keyword_match_score * (preset["keyword_boost"] if preset else 1.0)))
     eff_skills  = min(100, round(skills_score * (preset["skills_boost"] if preset else 1.0)))
 
     overall_score = round(
-        eff_keyword       * weights["keyword"]
-        + eff_skills      * weights["skills"]
-        + experience_score * weights["experience"]
-        + education_score  * weights["education"]
+        eff_keyword       * SCORE_WEIGHTS["keyword"]
+        + eff_skills      * SCORE_WEIGHTS["skills"]
+        + experience_score * SCORE_WEIGHTS["experience"]
+        + education_score  * SCORE_WEIGHTS["education"]
     )
 
     # ------------------------------------------------------------------
@@ -1165,7 +1144,6 @@ def score_resume(resume_text: str, jd_text: str, role: str = None, ats_preset: s
     # ------------------------------------------------------------------
     return {
         "mode": "ats_vs_jd",
-        "role": role or "default",
         "ats_preset": ats_preset or None,
         "overall_score": overall_score,
         "keyword_match_score": keyword_match_score,
@@ -1202,7 +1180,7 @@ def score_resume(resume_text: str, jd_text: str, role: str = None, ats_preset: s
     }
 
 
-def score_resume_only(resume_text: str, role: str = None, ats_preset: str = None) -> dict:
+def score_resume_only(resume_text: str, ats_preset: str = None) -> dict:
     """
     Score a resume for general ATS readiness without a job description.
 
@@ -1374,7 +1352,6 @@ def score_resume_only(resume_text: str, role: str = None, ats_preset: str = None
     # ------------------------------------------------------------------
     return {
         "mode": "resume_only",
-        "role": role or "default",
         "ats_preset": ats_preset or None,
         "overall_score": overall_score,
         "keyword_match_score": 0,

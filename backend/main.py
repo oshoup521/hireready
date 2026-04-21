@@ -14,6 +14,8 @@ Routes:
 """
 
 import os
+import logging
+import traceback
 from typing import List, Optional
 from fastapi import FastAPI, File, Form, UploadFile, HTTPException
 from fastapi.middleware.cors import CORSMiddleware
@@ -21,6 +23,9 @@ from dotenv import load_dotenv
 
 from parser import extract_text
 from scorer import score_resume, score_resume_only
+
+logging.basicConfig(level=logging.INFO)
+logger = logging.getLogger("hireready")
 
 # ---------------------------------------------------------------------------
 # Load environment variables from .env (if present)
@@ -75,7 +80,6 @@ async def analyze_resume(
     resume: UploadFile = File(...),
     jd: Optional[UploadFile] = None,
     cover_letter: Optional[UploadFile] = None,
-    role: Optional[str] = Form(None),
     ats_preset: Optional[str] = Form(None),
 ):
     """
@@ -104,11 +108,13 @@ async def analyze_resume(
     try:
         resume_text = extract_text(resume_bytes, resume.filename or "resume.pdf")
     except ValueError as exc:
+        logger.warning("Resume parse failed: %s", exc)
         raise HTTPException(status_code=422, detail=str(exc))
-    except Exception:
+    except Exception as exc:
+        logger.exception("Unexpected resume parse error")
         raise HTTPException(
             status_code=422,
-            detail="Could not extract text from resume. Please ensure the file is a valid PDF or DOCX.",
+            detail=f"Could not extract text from resume: {type(exc).__name__}: {exc}",
         )
 
     # Step 3 — Parse optional cover letter
@@ -120,17 +126,15 @@ async def analyze_resume(
         except Exception:
             cover_letter_text = None  # Non-fatal — proceed without it
 
-    # Normalise role / ats_preset values
-    valid_roles = {"software_engineer", "product_manager", "data_scientist"}
+    # Normalise ats_preset value
     valid_presets = {"greenhouse", "workday", "lever"}
-    role_norm = role.lower().replace(" ", "_") if role and role.lower().replace(" ", "_") in valid_roles else None
     preset_norm = ats_preset.lower() if ats_preset and ats_preset.lower() in valid_presets else None
 
     # Step 4 — Run NLP scoring (mode depends on whether a JD was uploaded)
     try:
         if jd is None:
             # ATS-only mode: score resume on its own merits
-            result = score_resume_only(resume_text, role=role_norm, ats_preset=preset_norm)
+            result = score_resume_only(resume_text, ats_preset=preset_norm)
             result["resume_text"] = resume_text[:6000]
             result["jd_text"] = ""
         else:
@@ -139,21 +143,24 @@ async def analyze_resume(
                 jd_bytes = await jd.read()
                 jd_text = extract_text(jd_bytes, jd.filename or "jd.pdf")
             except ValueError as exc:
+                logger.warning("JD parse failed: %s", exc)
                 raise HTTPException(status_code=422, detail=str(exc))
-            except Exception:
+            except Exception as exc:
+                logger.exception("Unexpected JD parse error")
                 raise HTTPException(
                     status_code=422,
-                    detail="Could not extract text from job description. Please ensure the file is a valid PDF or DOCX.",
+                    detail=f"Could not extract text from job description: {type(exc).__name__}: {exc}",
                 )
-            result = score_resume(resume_text, jd_text, role=role_norm, ats_preset=preset_norm, cover_letter_text=cover_letter_text)
+            result = score_resume(resume_text, jd_text, ats_preset=preset_norm, cover_letter_text=cover_letter_text)
             result["resume_text"] = resume_text[:6000]
             result["jd_text"] = jd_text[:4000]
     except HTTPException:
         raise
-    except Exception:
+    except Exception as exc:
+        logger.exception("Scoring failed")
         raise HTTPException(
             status_code=500,
-            detail="Scoring failed, please try again.",
+            detail=f"Scoring failed: {type(exc).__name__}: {exc}\n{traceback.format_exc()}",
         )
 
     # Step 4 — Return the full result dict as JSON
