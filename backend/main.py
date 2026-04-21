@@ -17,9 +17,12 @@ import os
 import logging
 import traceback
 from typing import List, Optional
-from fastapi import FastAPI, File, Form, UploadFile, HTTPException
+from fastapi import FastAPI, File, Form, UploadFile, HTTPException, Request
 from fastapi.middleware.cors import CORSMiddleware
 from dotenv import load_dotenv
+from slowapi import Limiter, _rate_limit_exceeded_handler
+from slowapi.util import get_remote_address
+from slowapi.errors import RateLimitExceeded
 
 from parser import extract_text
 from scorer import score_resume, score_resume_only
@@ -27,6 +30,9 @@ from coach import CoachRequest, run_coach_chat
 
 logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger("hireready")
+
+# Upload size cap — 5 MB per file. Anything bigger is rejected before parsing.
+MAX_UPLOAD_BYTES = 5 * 1024 * 1024
 
 # ---------------------------------------------------------------------------
 # Load environment variables from .env (if present)
@@ -39,6 +45,12 @@ load_dotenv()
 ALLOWED_ORIGIN = os.getenv("ALLOWED_ORIGIN", "*")
 
 # ---------------------------------------------------------------------------
+# Rate limiter — per-IP, wired into FastAPI via middleware + exception handler.
+# Limits apply to abuse-prone routes only (/analyze, /compare, /chat).
+# ---------------------------------------------------------------------------
+limiter = Limiter(key_func=get_remote_address)
+
+# ---------------------------------------------------------------------------
 # FastAPI app
 # ---------------------------------------------------------------------------
 app = FastAPI(
@@ -46,6 +58,9 @@ app = FastAPI(
     description="Upload your resume and job description PDFs to receive an ATS compatibility score.",
     version="1.0.0",
 )
+
+app.state.limiter = limiter
+app.add_exception_handler(RateLimitExceeded, _rate_limit_exceeded_handler)
 
 # ---------------------------------------------------------------------------
 # CORS middleware
@@ -64,6 +79,20 @@ app.add_middleware(
 
 
 # ---------------------------------------------------------------------------
+# Helpers
+# ---------------------------------------------------------------------------
+async def read_upload_capped(file: UploadFile, label: str) -> bytes:
+    """Read an UploadFile into memory, rejecting anything over MAX_UPLOAD_BYTES."""
+    data = await file.read()
+    if len(data) > MAX_UPLOAD_BYTES:
+        raise HTTPException(
+            status_code=413,
+            detail=f"{label} exceeds {MAX_UPLOAD_BYTES // (1024 * 1024)} MB size limit.",
+        )
+    return data
+
+
+# ---------------------------------------------------------------------------
 # Routes
 # ---------------------------------------------------------------------------
 
@@ -77,7 +106,9 @@ async def health_check():
 
 
 @app.post("/analyze")
+@limiter.limit("10/minute")
 async def analyze_resume(
+    request: Request,
     resume: UploadFile = File(...),
     jd: Optional[UploadFile] = None,
     jd_text: Optional[str] = Form(None),
@@ -99,9 +130,11 @@ async def analyze_resume(
     Returns a JSON object containing overall score, sub-scores, keyword
     lists, section analysis, and improvement suggestions.
     """
-    # Step 1 — Read the resume file as bytes
+    # Step 1 — Read the resume file as bytes (size-capped)
     try:
-        resume_bytes = await resume.read()
+        resume_bytes = await read_upload_capped(resume, "Resume")
+    except HTTPException:
+        raise
     except Exception as exc:
         raise HTTPException(
             status_code=422,
@@ -125,8 +158,10 @@ async def analyze_resume(
     cover_letter_text = None
     if cover_letter is not None:
         try:
-            cl_bytes = await cover_letter.read()
+            cl_bytes = await read_upload_capped(cover_letter, "Cover letter")
             cover_letter_text = extract_text(cl_bytes, cover_letter.filename or "cover_letter.pdf")
+        except HTTPException:
+            raise
         except Exception:
             cover_letter_text = None  # Non-fatal — proceed without it
 
@@ -149,8 +184,10 @@ async def analyze_resume(
             # JD-comparison mode: resolve JD text from file upload or pasted input
             if jd is not None:
                 try:
-                    jd_bytes = await jd.read()
+                    jd_bytes = await read_upload_capped(jd, "Job description")
                     resolved_jd_text = extract_text(jd_bytes, jd.filename or "jd.pdf")
+                except HTTPException:
+                    raise
                 except ValueError as exc:
                     logger.warning("JD parse failed: %s", exc)
                     raise HTTPException(status_code=422, detail=str(exc))
@@ -186,7 +223,9 @@ async def analyze_resume(
 
 
 @app.post("/compare")
+@limiter.limit("5/minute")
 async def compare_resume(
+    request: Request,
     resume: UploadFile = File(...),
     jds: List[UploadFile] = File(...),
 ):
@@ -207,8 +246,10 @@ async def compare_resume(
 
     # Parse the resume once
     try:
-        resume_bytes = await resume.read()
+        resume_bytes = await read_upload_capped(resume, "Resume")
         resume_text = extract_text(resume_bytes, resume.filename or "resume.pdf")
+    except HTTPException:
+        raise
     except ValueError as exc:
         raise HTTPException(status_code=422, detail=str(exc))
     except Exception:
@@ -221,8 +262,10 @@ async def compare_resume(
     results = []
     for jd_file in jds:
         try:
-            jd_bytes = await jd_file.read()
+            jd_bytes = await read_upload_capped(jd_file, f"JD '{jd_file.filename}'")
             jd_text = extract_text(jd_bytes, jd_file.filename or "jd.pdf")
+        except HTTPException:
+            raise
         except ValueError as exc:
             raise HTTPException(status_code=422, detail=str(exc))
         except Exception:
@@ -244,7 +287,8 @@ async def compare_resume(
 
 
 @app.post("/chat")
-async def coach_chat(request: CoachRequest):
+@limiter.limit("20/minute")
+async def coach_chat(request: Request, payload: CoachRequest):
     """
     Resume Coach chatbot. Accepts:
         messages — conversation history (list of {role, content})
@@ -255,7 +299,7 @@ async def coach_chat(request: CoachRequest):
     Returns { reply, model_used } or 503 if every provider fails.
     """
     try:
-        return await run_coach_chat(request)
+        return await run_coach_chat(payload)
     except RuntimeError as exc:
         logger.warning("Coach chat exhausted model pool: %s", exc)
         raise HTTPException(status_code=503, detail=str(exc))
