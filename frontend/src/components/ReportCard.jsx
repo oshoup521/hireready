@@ -121,6 +121,18 @@ export default function ReportCard({ report }) {
     cover_letter_score,
     cover_letter_matched,
     cover_letter_missing,
+    required_years,
+    candidate_years,
+    years_match,
+    experience_gap_years,
+    years_fit_score,
+    jd_seniority,
+    resume_seniority,
+    implied_seniority,
+    seniority_mismatch,
+    seniority_warning,
+    positions_found,
+    employment_gaps,
     matched_keywords,
     missing_keywords,
     extra_keywords,
@@ -275,6 +287,80 @@ export default function ReportCard({ report }) {
           </>
         )}
       </div>
+
+      {/* 3b — Experience Fit: years-of-experience, seniority, employment gaps.
+          Only shown when at least one field has meaningful data. */}
+      {(candidate_years > 0 || required_years != null || jd_seniority || (employment_gaps?.length > 0)) && (
+        <div className="card">
+          <h3 className="section-title">Experience Fit</h3>
+
+          {/* JD mode — years-of-experience requirement vs candidate */}
+          {!isResumeOnly && required_years != null && (
+            <>
+              <ProgressBar
+                label={`Years-of-Experience Fit (${required_years}+ yrs required)`}
+                score={years_fit_score ?? 0}
+                color={years_match ? 'var(--success)' : 'var(--danger)'}
+              />
+              <p className={`exp-hint ${years_match ? 'exp-hint--ok' : 'exp-hint--miss'}`}>
+                {years_match
+                  ? `✅ You show ${candidate_years.toFixed(1)} years — meets the ${required_years}+ requirement.`
+                  : `❌ JD requires ${required_years}+ years; your resume shows ${candidate_years.toFixed(1)} (${experience_gap_years} yr gap).`}
+              </p>
+            </>
+          )}
+
+          {/* ATS-only mode — just show candidate years + implied seniority */}
+          {isResumeOnly && candidate_years > 0 && (
+            <p className="exp-hint exp-hint--ok">
+              📅 <strong>{candidate_years.toFixed(1)} years</strong> of experience detected
+              {positions_found > 0 && ` across ${positions_found} position${positions_found === 1 ? '' : 's'}`}
+              {implied_seniority && ` — reads as ${implied_seniority}-level.`}
+            </p>
+          )}
+
+          {/* Seniority panel */}
+          {(jd_seniority || resume_seniority || implied_seniority) && (
+            <div className="seniority-row">
+              {jd_seniority && (
+                <div className="seniority-chip seniority-chip--jd">
+                  <span className="seniority-chip-label">JD target</span>
+                  <span className="seniority-chip-value">{jd_seniority}</span>
+                </div>
+              )}
+              <div className={`seniority-chip ${seniority_mismatch ? 'seniority-chip--bad' : 'seniority-chip--ok'}`}>
+                <span className="seniority-chip-label">Your level</span>
+                <span className="seniority-chip-value">
+                  {resume_seniority || implied_seniority || '—'}
+                </span>
+              </div>
+            </div>
+          )}
+
+          {/* Seniority warning */}
+          {seniority_warning && (
+            <div className={`seniority-warning ${seniority_mismatch ? 'seniority-warning--hard' : 'seniority-warning--soft'}`}>
+              <span className="seniority-warning-icon">{seniority_mismatch ? '🚩' : '⚠️'}</span>
+              <span>{seniority_warning}</span>
+            </div>
+          )}
+
+          {/* Employment gaps */}
+          {employment_gaps?.length > 0 && (
+            <DetailPanel title={`${employment_gaps.length} employment gap${employment_gaps.length === 1 ? '' : 's'} detected`} color="var(--warning)">
+              {employment_gaps.map((g, i) => (
+                <div key={i} className="gap-item">
+                  <span className="gap-icon">📅</span>
+                  <span>
+                    <strong>{g.gap_months} months</strong> between{' '}
+                    <strong>{g.after}</strong> and <strong>{g.before}</strong>.
+                  </span>
+                </div>
+              ))}
+            </DetailPanel>
+          )}
+        </div>
+      )}
 
       {/* 4 (was 3) — Keyword analysis */}
       <div className="card">

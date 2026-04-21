@@ -5,6 +5,8 @@ a structured score report with actionable suggestions.
 """
 
 import re
+from datetime import date
+
 import spacy
 from spellchecker import SpellChecker
 
@@ -41,6 +43,104 @@ TECH_SKILLS = {
     "critical thinking", "collaboration", "agile", "scrum", "kanban",
     "project management", "time management", "mentoring",
 }
+
+# ---------------------------------------------------------------------------
+# Skill synonym map — collapses common aliases to a canonical form so that
+# "js" / "javascript" / "java script" all count as a single skill match.
+# Keys are lowercase variants, values are the canonical form that appears
+# in TECH_SKILLS (or a normalised multi-word form).
+# ---------------------------------------------------------------------------
+SKILL_SYNONYMS = {
+    # Languages
+    "js": "javascript",
+    "java script": "javascript",
+    "ecmascript": "javascript",
+    "ts": "typescript",
+    "py": "python",
+    "golang": "go",
+    "cpp": "c++",
+    "c plus plus": "c++",
+    "csharp": "c#",
+    "c sharp": "c#",
+    "dotnet": ".net",
+    ".net": "asp.net",
+    # Frontend
+    "reactjs": "react",
+    "react.js": "react",
+    "react js": "react",
+    "vuejs": "vue",
+    "vue.js": "vue",
+    "next": "nextjs",
+    "next.js": "nextjs",
+    "nuxt": "nextjs",
+    # Backend
+    "node": "nodejs",
+    "node.js": "nodejs",
+    "expressjs": "express",
+    "express.js": "express",
+    # Data / ML
+    "ml": "machine learning",
+    "dl": "deep learning",
+    "nlp": "nlp",
+    "natural language processing": "nlp",
+    "tf": "tensorflow",
+    "sklearn": "scikit-learn",
+    "scikit learn": "scikit-learn",
+    # Cloud / DevOps
+    "k8s": "kubernetes",
+    "kube": "kubernetes",
+    "gcloud": "gcp",
+    "google cloud": "gcp",
+    "amazon web services": "aws",
+    "microsoft azure": "azure",
+    "ci cd": "ci/cd",
+    "cicd": "ci/cd",
+    "continuous integration": "ci/cd",
+    "continuous delivery": "ci/cd",
+    # Databases
+    "postgres": "postgresql",
+    "psql": "postgresql",
+    "mongo": "mongodb",
+    "es": "elasticsearch",
+    "mssql": "sql",
+    "tsql": "sql",
+    # Soft / methodologies
+    "pm": "project management",
+    "oop": "object-oriented programming",
+    "tdd": "test-driven development",
+}
+
+# Precompiled multi-word regex list, sorted by length descending so that
+# "amazon web services" is matched before "aws" on the same text slice.
+_SKILL_TERMS_SORTED = sorted(
+    set(TECH_SKILLS) | set(SKILL_SYNONYMS.keys()),
+    key=len,
+    reverse=True,
+)
+
+
+def _canonical_skill(term: str) -> str:
+    """Return the canonical skill string for a raw term, using SKILL_SYNONYMS."""
+    t = term.lower().strip()
+    return SKILL_SYNONYMS.get(t, t)
+
+
+def _find_skills_in_text(text: str) -> set[str]:
+    """
+    Find all skills mentioned in a block of text, resolving synonyms to
+    their canonical form. Uses word-boundary matching so "js" inside
+    "jscript" is not matched.
+    """
+    lower = text.lower()
+    found: set[str] = set()
+    for term in _SKILL_TERMS_SORTED:
+        # Word-boundary match. Escape regex-special chars in the term
+        # (e.g. "c++", "c#", ".net", "ci/cd").
+        pattern = r"(?<![a-z0-9])" + re.escape(term) + r"(?![a-z0-9])"
+        if re.search(pattern, lower):
+            found.add(_canonical_skill(term))
+    return found
+
 
 # Keywords used to detect resume sections
 SECTION_KEYWORDS = {
@@ -284,6 +384,99 @@ _TITLE_STOP_WORDS = {
 # Regex: match the first word of bullet lines (lines starting with – • - * or a capital word)
 _BULLET_LINE_RE = re.compile(
     r"^[\s\-\•\*\–\—]*([A-Za-z]+)", re.MULTILINE
+)
+
+# ---------------------------------------------------------------------------
+# Years-of-experience patterns
+# ---------------------------------------------------------------------------
+# Match explicit requirements in a JD: "5+ years", "at least 3 years of experience",
+# "minimum of 4 years", "2-5 years of experience"
+_JD_YEARS_PATTERNS = [
+    re.compile(r"\b(\d{1,2})\s*[\-–]\s*(\d{1,2})\s*\+?\s*(?:years?|yrs?)\b", re.IGNORECASE),
+    re.compile(r"\b(?:at least|minimum of|min\.?|min)\s*(\d{1,2})\s*\+?\s*(?:years?|yrs?)\b", re.IGNORECASE),
+    re.compile(r"\b(\d{1,2})\s*\+\s*(?:years?|yrs?)\b", re.IGNORECASE),
+    re.compile(r"\b(\d{1,2})\s*(?:or more|plus)\s*(?:years?|yrs?)\b", re.IGNORECASE),
+    re.compile(r"\b(\d{1,2})\s*(?:years?|yrs?)\s*(?:of\s+)?(?:experience|exp\.?)\b", re.IGNORECASE),
+]
+
+# Resume self-claimed years: "8 years of experience in...", "Over 5 years"
+_RESUME_YEARS_PATTERNS = [
+    re.compile(r"\b(\d{1,2})\+?\s*(?:years?|yrs?)\s+(?:of\s+)?(?:experience|exp\.?|industry experience)\b", re.IGNORECASE),
+    re.compile(r"\bover\s+(\d{1,2})\s*(?:years?|yrs?)\b", re.IGNORECASE),
+    re.compile(r"\bwith\s+(\d{1,2})\+?\s*(?:years?|yrs?)\s+(?:of\s+)?experience\b", re.IGNORECASE),
+]
+
+# ---------------------------------------------------------------------------
+# Seniority vocabulary — ordered from most senior to least senior so we pick
+# the strongest signal if multiple terms appear.
+# ---------------------------------------------------------------------------
+SENIORITY_LEVELS = [
+    ("principal",  {"principal", "distinguished", "fellow"}),
+    ("staff",      {"staff"}),
+    ("lead",       {"lead", "tech lead", "team lead"}),
+    ("senior",     {"senior", "sr.", "sr"}),
+    ("mid",        {"mid-level", "mid level", "intermediate"}),
+    ("junior",     {"junior", "jr.", "jr", "associate"}),
+    ("entry",      {"entry-level", "entry level", "graduate", "intern", "trainee"}),
+]
+
+# Canonical ordering for comparing seniority levels (higher = more senior)
+_SENIORITY_RANK = {
+    "entry":     0,
+    "junior":    1,
+    "mid":       2,
+    "senior":    3,
+    "lead":      4,
+    "staff":     5,
+    "principal": 6,
+}
+
+# ---------------------------------------------------------------------------
+# Employment date-range patterns
+# ---------------------------------------------------------------------------
+_MONTH_MAP = {
+    "jan": 1, "january": 1,
+    "feb": 2, "february": 2,
+    "mar": 3, "march": 3,
+    "apr": 4, "april": 4,
+    "may": 5,
+    "jun": 6, "june": 6,
+    "jul": 7, "july": 7,
+    "aug": 8, "august": 8,
+    "sep": 9, "sept": 9, "september": 9,
+    "oct": 10, "october": 10,
+    "nov": 11, "november": 11,
+    "dec": 12, "december": 12,
+}
+
+# "Jan 2020 - Present", "March 2019 – August 2022", "Feb. 2018 to Dec 2020"
+_DATE_RANGE_WORDY = re.compile(
+    r"\b("
+    r"jan(?:uary)?|feb(?:ruary)?|mar(?:ch)?|apr(?:il)?|may|jun(?:e)?|"
+    r"jul(?:y)?|aug(?:ust)?|sep(?:t|tember)?|oct(?:ober)?|nov(?:ember)?|dec(?:ember)?"
+    r")\.?\s+(\d{4})\s*"
+    r"(?:[-–—to]+|until)\s*"
+    r"(?:("
+    r"jan(?:uary)?|feb(?:ruary)?|mar(?:ch)?|apr(?:il)?|may|jun(?:e)?|"
+    r"jul(?:y)?|aug(?:ust)?|sep(?:t|tember)?|oct(?:ober)?|nov(?:ember)?|dec(?:ember)?"
+    r")\.?\s+(\d{4})|present|current|now|today)\b",
+    re.IGNORECASE,
+)
+
+# "03/2019 – 08/2022", "03-2019 to 08-2022"
+_DATE_RANGE_NUMERIC = re.compile(
+    r"\b(\d{1,2})[/\-](\d{4})\s*(?:[-–—to]+|until)\s*"
+    r"(?:(\d{1,2})[/\-](\d{4})|present|current|now)\b",
+    re.IGNORECASE,
+)
+
+# "2019 - 2022", "2020–Present"
+# Lookbehind/ahead reject years that are already part of a month-day-year date
+# (e.g. "06/2013 - 12/2015"), so numeric ranges aren't double-counted.
+_DATE_RANGE_YEAR_ONLY = re.compile(
+    r"(?<![/\-\d])\b(19\d{2}|20\d{2})\s*(?:[-–—to]+|until)\s*"
+    r"(?:(19\d{2}|20\d{2})(?![/\-\d])|present|current|now)\b",
+    re.IGNORECASE,
 )
 
 # ---------------------------------------------------------------------------
@@ -832,6 +1025,410 @@ def detect_buzzwords(text: str) -> list[str]:
     return sorted(found)
 
 
+# ---------------------------------------------------------------------------
+# Years-of-experience, seniority, and date-range analysis
+# ---------------------------------------------------------------------------
+
+def extract_required_years(jd_text: str) -> int | None:
+    """
+    Parse the maximum years-of-experience requirement from a job description.
+
+    Handles "5+ years", "at least 3 years", "2-5 years of experience", etc.
+    Returns the floor of a range (e.g. "2-5 years" → 2) since that's what
+    candidates need to clear.
+
+    Returns:
+        int (years) or None if no requirement is detectable.
+    """
+    # Ranges take precedence — "2-5 years" means the floor (2) is the
+    # requirement a candidate needs to clear.
+    range_pattern = _JD_YEARS_PATTERNS[0]
+    range_floors: list[int] = []
+    for m in range_pattern.finditer(jd_text):
+        try:
+            n = int(m.group(1))
+        except (ValueError, IndexError):
+            continue
+        if 0 < n <= 30:
+            range_floors.append(n)
+    if range_floors:
+        return min(range_floors)
+
+    # Otherwise: strongest single-number requirement wins ("5+", "at least 3"…).
+    candidates: list[int] = []
+    for pattern in _JD_YEARS_PATTERNS[1:]:
+        for m in pattern.finditer(jd_text):
+            try:
+                n = int(m.group(1))
+            except (ValueError, IndexError):
+                continue
+            if 0 < n <= 30:
+                candidates.append(n)
+    if not candidates:
+        return None
+    return max(candidates)
+
+
+# Section headings that mark the start of the experience block.
+_EXPERIENCE_HEADING_RE = re.compile(
+    r"^\s*(work\s+experience|professional\s+experience|employment(?:\s+history)?|"
+    r"experience|career\s+history|work\s+history)\s*:?\s*$",
+    re.IGNORECASE | re.MULTILINE,
+)
+
+# Headings that mark the *end* of the experience block (start of another section).
+_NON_EXPERIENCE_HEADING_RE = re.compile(
+    r"^\s*(education(?:al)?(?:\s+qualifications?)?|academic|achievements?|awards?|"
+    r"certifications?|skills?|technical\s+skills?|projects?|hobbies|interests|"
+    r"extracurricular(?:\s+activities)?|references?|publications?|languages?|"
+    r"summary|objective|profile)\s*:?\s*$",
+    re.IGNORECASE | re.MULTILINE,
+)
+
+# Education / non-employment keywords. If a date range falls on a line that
+# contains any of these, it's almost certainly a degree or course date rather
+# than an employment range.
+_EDUCATION_LINE_KEYWORDS = (
+    "bachelor", "master", "b.tech", "btech", "b.e", "m.tech", "mtech",
+    "b.sc", "m.sc", "bsc", "msc", "mba", "phd", "ph.d",
+    "school", "college", "university", "board", "degree",
+    "matric", "intermediate", "secondary", "graduation", "graduated",
+    "diploma", "academics", "course", "coursework",
+    "training", "internship",    # distinct from full-time employment
+    "certification", "certificate", "certified",
+    "gate", "cat", "gre", "gmat",
+)
+
+
+def _extract_experience_section(resume_text: str) -> str:
+    """
+    Return the text of the resume's experience section, or the full resume
+    if no experience heading is found.
+
+    Strategy: find the first "Work Experience" / "Experience" heading, then
+    slice until the next section heading (Education, Skills, Achievements…).
+    """
+    start_match = _EXPERIENCE_HEADING_RE.search(resume_text)
+    if not start_match:
+        return resume_text
+
+    body_start = start_match.end()
+
+    # Find the nearest subsequent non-experience heading to bound the section.
+    end_match = _NON_EXPERIENCE_HEADING_RE.search(resume_text, pos=body_start)
+    if end_match:
+        return resume_text[body_start:end_match.start()]
+    return resume_text[body_start:]
+
+
+def _line_is_education(text: str, char_index: int) -> bool:
+    """Return True if the line containing char_index looks like an education entry."""
+    line_start = text.rfind("\n", 0, char_index) + 1
+    line_end = text.find("\n", char_index)
+    if line_end == -1:
+        line_end = len(text)
+    line = text[line_start:line_end].lower()
+    return any(kw in line for kw in _EDUCATION_LINE_KEYWORDS)
+
+
+def extract_resume_years(resume_text: str) -> dict:
+    """
+    Estimate the candidate's total years of experience from the resume.
+
+    Strategy:
+      1. Pull explicit "X years of experience" claims.
+      2. Scope date-range parsing to the Experience section only (falls back
+         to the full resume when no heading is detected), skipping any match
+         on a line that mentions education keywords. This prevents degree
+         years (e.g. "B.Tech 2008-2012") from being counted as employment.
+      3. Merge overlapping ranges, compute total span, and detect gaps
+         greater than 6 months.
+      4. Return the maximum of the two estimates (claims vs. parsed dates),
+         since candidates often understate or omit one.
+
+    Returns:
+        {
+          "total_years":       float  (estimate, 0 if nothing parseable),
+          "claimed_years":     int | None,   # self-reported
+          "parsed_years":      float,        # from date ranges
+          "positions_found":   int,          # number of date ranges detected
+          "employment_gaps":   list[dict],   # [{gap_months, after, before}]
+        }
+    """
+    # --- 1. Explicit self-reported years ---
+    claimed_candidates: list[int] = []
+    for pattern in _RESUME_YEARS_PATTERNS:
+        for m in pattern.finditer(resume_text):
+            try:
+                n = int(m.group(1))
+            except (ValueError, IndexError):
+                continue
+            if 0 < n <= 50:
+                claimed_candidates.append(n)
+    claimed_years = max(claimed_candidates) if claimed_candidates else None
+
+    # --- 2. Date-range extraction ---
+    # Scope the scan to the Experience section when it's identifiable, so
+    # degree years ("B.Tech 2008-2012") and course dates don't pollute the
+    # employment total. Falls back to the full resume if no heading is found.
+    experience_text = _extract_experience_section(resume_text)
+
+    # Mask already-matched spans with spaces between patterns so the
+    # more-specific "March 2020 - Present" isn't re-matched as "2020 - Present"
+    # by the year-only fallback.
+    today = date.today()
+    ranges: list[tuple[date, date]] = []
+    remaining = experience_text
+
+    def _mask(text: str, spans: list[tuple[int, int]]) -> str:
+        arr = list(text)
+        for s, e in spans:
+            for i in range(s, e):
+                arr[i] = " "
+        return "".join(arr)
+
+    def _month_of(name: str) -> int:
+        return _MONTH_MAP.get(name.lower().rstrip("."), 1)
+
+    # Wordy: "Jan 2020 - Present"
+    wordy_spans: list[tuple[int, int]] = []
+    for m in _DATE_RANGE_WORDY.finditer(remaining):
+        # Skip education / training lines even inside the Experience block.
+        if _line_is_education(remaining, m.start()):
+            continue
+        start_month = _month_of(m.group(1))
+        start_year = int(m.group(2))
+        end_month_name = m.group(3)
+        end_year_str = m.group(4)
+        if end_month_name and end_year_str:
+            end = date(int(end_year_str), _month_of(end_month_name), 1)
+        else:
+            end = today
+        try:
+            start = date(start_year, start_month, 1)
+        except ValueError:
+            continue
+        if start <= end and start.year >= 1960:
+            ranges.append((start, end))
+            wordy_spans.append(m.span())
+    remaining = _mask(remaining, wordy_spans)
+
+    # Numeric: "03/2019 - 08/2022"
+    numeric_spans: list[tuple[int, int]] = []
+    for m in _DATE_RANGE_NUMERIC.finditer(remaining):
+        if _line_is_education(remaining, m.start()):
+            continue
+        try:
+            sm = int(m.group(1)); sy = int(m.group(2))
+            if not (1 <= sm <= 12):
+                continue
+            start = date(sy, sm, 1)
+            if m.group(3) and m.group(4):
+                em = int(m.group(3)); ey = int(m.group(4))
+                if not (1 <= em <= 12):
+                    continue
+                end = date(ey, em, 1)
+            else:
+                end = today
+        except ValueError:
+            continue
+        if start <= end and start.year >= 1960:
+            ranges.append((start, end))
+            numeric_spans.append(m.span())
+    remaining = _mask(remaining, numeric_spans)
+
+    # Year-only: "2019 - 2022" — the most ambiguous pattern, so also
+    # skip any match whose line looks like an education entry.
+    for m in _DATE_RANGE_YEAR_ONLY.finditer(remaining):
+        if _line_is_education(remaining, m.start()):
+            continue
+        try:
+            sy = int(m.group(1))
+            start = date(sy, 1, 1)
+            if m.group(2):
+                end = date(int(m.group(2)), 12, 31)
+            else:
+                end = today
+        except ValueError:
+            continue
+        if start <= end and start.year >= 1960:
+            ranges.append((start, end))
+
+    # Deduplicate identical ranges (same start + end) that appear from
+    # multiple pattern matches hitting the same dates.
+    ranges = sorted(set(ranges))
+
+    # Merge overlapping/adjacent ranges so concurrent jobs don't double-count.
+    merged: list[list[date]] = []
+    for s, e in ranges:
+        if merged and s <= merged[-1][1]:
+            if e > merged[-1][1]:
+                merged[-1][1] = e
+        else:
+            merged.append([s, e])
+
+    # Total duration in years
+    total_days = sum((e - s).days for s, e in merged)
+    parsed_years = round(total_days / 365.25, 1) if total_days > 0 else 0.0
+
+    # Gap detection between consecutive (merged) ranges
+    gaps: list[dict] = []
+    for i in range(1, len(merged)):
+        prev_end = merged[i - 1][1]
+        next_start = merged[i][0]
+        gap_days = (next_start - prev_end).days
+        if gap_days > 183:   # > ~6 months
+            gaps.append({
+                "gap_months": round(gap_days / 30.0, 1),
+                "after":  prev_end.strftime("%b %Y"),
+                "before": next_start.strftime("%b %Y"),
+            })
+
+    total_years = max(parsed_years, float(claimed_years or 0))
+
+    return {
+        "total_years": total_years,
+        "claimed_years": claimed_years,
+        "parsed_years": parsed_years,
+        # Distinct pre-merge positions (what the resume actually lists) —
+        # more honest for the UI than the merged count.
+        "positions_found": len(ranges),
+        "employment_gaps": gaps,
+    }
+
+
+def detect_seniority(text: str) -> str | None:
+    """
+    Detect the seniority level signalled by a piece of text (resume or JD).
+
+    Scans for vocabulary from SENIORITY_LEVELS and returns the *highest*
+    level found, since job postings and resumes often include multiple
+    levels (e.g. "Senior / Staff Engineer").
+
+    Returns:
+        One of "entry", "junior", "mid", "senior", "lead", "staff",
+        "principal", or None if no level can be detected.
+    """
+    lower = text.lower()
+    found: list[str] = []
+    for level, vocab in SENIORITY_LEVELS:
+        for term in vocab:
+            # Word-boundary match to avoid "senior" matching "seniority" etc.
+            if re.search(r"(?<![a-z])" + re.escape(term) + r"(?![a-z])", lower):
+                found.append(level)
+                break
+    if not found:
+        return None
+    # Return the highest-ranked level found
+    return max(found, key=lambda lv: _SENIORITY_RANK[lv])
+
+
+def _seniority_from_years(years: float) -> str:
+    """Map total years-of-experience to an implied seniority bucket."""
+    if years >= 10: return "principal"
+    if years >= 8:  return "staff"
+    if years >= 6:  return "lead"
+    if years >= 4:  return "senior"
+    if years >= 2:  return "mid"
+    if years >= 1:  return "junior"
+    return "entry"
+
+
+def analyze_experience_fit(
+    resume_text: str,
+    jd_text: str | None = None,
+) -> dict:
+    """
+    Composite analysis combining years-of-experience, seniority, and date-range
+    parsing. Returns all fields needed by the frontend:
+
+        {
+          "required_years":    int | None,     # extracted from JD
+          "candidate_years":   float,          # from resume (claims ∪ dates)
+          "years_match":       bool,           # candidate >= required
+          "experience_gap_years": float,       # max(0, required - candidate)
+          "years_fit_score":   int (0-100),    # how well the candidate fits the requirement
+          "jd_seniority":      str | None,     # senior / lead / …
+          "resume_seniority":  str | None,     # detected from resume title lines
+          "implied_seniority": str,            # from candidate_years
+          "seniority_mismatch": bool,          # JD demands higher than candidate can offer
+          "seniority_warning": str | None,     # human-readable message
+          "positions_found":   int,
+          "employment_gaps":   list[dict],
+        }
+    """
+    years_info = extract_resume_years(resume_text)
+    candidate_years = years_info["total_years"]
+    implied = _seniority_from_years(candidate_years)
+    resume_seniority = detect_seniority(resume_text)
+
+    required_years = extract_required_years(jd_text) if jd_text else None
+    jd_seniority = detect_seniority(jd_text) if jd_text else None
+
+    # --- Years-fit score ---
+    if required_years is None:
+        years_fit_score = 100 if candidate_years > 0 else 50
+        years_match = True
+        experience_gap = 0.0
+    else:
+        if candidate_years >= required_years:
+            years_fit_score = 100
+            years_match = True
+            experience_gap = 0.0
+        else:
+            # Linear fall-off: every missing year deducts 15 points,
+            # floored at 20 (we don't want a hard zero — candidate might
+            # still be viable for a recruiter).
+            experience_gap = required_years - candidate_years
+            years_fit_score = max(20, round(100 - experience_gap * 15))
+            years_match = False
+
+    # --- Seniority mismatch ---
+    seniority_mismatch = False
+    seniority_warning: str | None = None
+
+    if jd_seniority and jd_seniority in _SENIORITY_RANK:
+        jd_rank = _SENIORITY_RANK[jd_seniority]
+        # Use the stronger of detected-title-seniority or implied-years-seniority
+        cand_level = resume_seniority or implied
+        cand_rank = _SENIORITY_RANK.get(cand_level, _SENIORITY_RANK[implied])
+        # Also boost candidate rank by implied if higher (someone with 10 years
+        # who doesn't write "Senior" in a title line still has senior experience)
+        cand_rank = max(cand_rank, _SENIORITY_RANK[implied])
+
+        if jd_rank - cand_rank >= 2:
+            seniority_mismatch = True
+            seniority_warning = (
+                f"JD targets a {jd_seniority.title()}-level role, but your resume "
+                f"reads as {implied.title()}-level "
+                f"({candidate_years:.1f} yrs of experience). Consider applying "
+                f"to roles closer to your current level, or highlight leadership "
+                f"and scope to close the gap."
+            )
+        elif jd_rank - cand_rank == 1:
+            # Borderline — flag as a soft warning only
+            seniority_warning = (
+                f"JD leans {jd_seniority.title()} while your profile reads as "
+                f"{implied.title()}. Emphasise ownership, mentoring, and scope "
+                f"to bridge the gap."
+            )
+
+    return {
+        "required_years": required_years,
+        "candidate_years": candidate_years,
+        "years_match": years_match,
+        "experience_gap_years": round(experience_gap, 1),
+        "years_fit_score": years_fit_score,
+        "jd_seniority": jd_seniority,
+        "resume_seniority": resume_seniority,
+        "implied_seniority": implied,
+        "seniority_mismatch": seniority_mismatch,
+        "seniority_warning": seniority_warning,
+        "positions_found": years_info["positions_found"],
+        "employment_gaps": years_info["employment_gaps"],
+    }
+
+
 def extract_keywords(text: str) -> list[str]:
     """
     Extract meaningful keywords from text using spaCy NLP.
@@ -937,40 +1534,47 @@ def score_resume(resume_text: str, jd_text: str, ats_preset: str = None, cover_l
     jd_lower = jd_text.lower()
 
     # ------------------------------------------------------------------
-    # 1. Keyword extraction
+    # 1. Keyword extraction (+ canonicalization via synonym map so that
+    #    "js" / "javascript", "k8s" / "kubernetes", etc. collapse together
+    #    before set comparison).
     # ------------------------------------------------------------------
     resume_keywords_list = extract_keywords(resume_text)
     jd_keywords_list = extract_keywords(jd_text)
 
-    resume_kw_set = set(resume_keywords_list)
-    jd_kw_set = set(jd_keywords_list)
+    # Canonical sets — used for accurate intersection.
+    resume_canon = {_canonical_skill(k) for k in resume_keywords_list}
+    jd_canon = {_canonical_skill(k) for k in jd_keywords_list}
 
-    matched_keywords = sorted(resume_kw_set & jd_kw_set)
-    missing_keywords = sorted(jd_kw_set - resume_kw_set)
-    extra_keywords = sorted(resume_kw_set - jd_kw_set)
+    # Also augment with skills found by direct scanning (catches skills that
+    # don't appear as noun chunks, e.g. "C++", "CI/CD", ".NET").
+    resume_canon |= _find_skills_in_text(resume_text)
+    jd_canon |= _find_skills_in_text(jd_text)
+
+    matched_keywords = sorted(resume_canon & jd_canon)
+    missing_keywords = sorted(jd_canon - resume_canon)
+    extra_keywords = sorted(resume_canon - jd_canon)
 
     # ------------------------------------------------------------------
     # 2. keyword_match_score
     # ------------------------------------------------------------------
-    if jd_kw_set:
+    if jd_canon:
         keyword_match_score = min(
-            100, round((len(matched_keywords) / len(jd_kw_set)) * 100)
+            100, round((len(matched_keywords) / len(jd_canon)) * 100)
         )
     else:
         keyword_match_score = 0
 
     # ------------------------------------------------------------------
-    # 3. skills_score — how many skills from the vocab appear in the JD
-    #    and how many of those also appear in the resume
+    # 3. skills_score — synonym-aware skill match between JD and resume.
     # ------------------------------------------------------------------
-    jd_skills = {s for s in TECH_SKILLS if s in jd_lower}
+    jd_skills = _find_skills_in_text(jd_text)
+    resume_skills = _find_skills_in_text(resume_text)
     if jd_skills:
-        resume_skills_matched = {s for s in jd_skills if s in resume_lower}
+        resume_skills_matched = jd_skills & resume_skills
         skills_score = min(100, round((len(resume_skills_matched) / len(jd_skills)) * 100))
     else:
-        # If JD doesn't mention specific skills, check resume breadth
-        resume_skill_count = sum(1 for s in TECH_SKILLS if s in resume_lower)
-        skills_score = min(100, round((resume_skill_count / 10) * 100))
+        # If JD doesn't mention specific skills, check resume breadth.
+        skills_score = min(100, round((len(resume_skills) / 10) * 100))
 
     # ------------------------------------------------------------------
     # 4. experience_score
@@ -1125,16 +1729,39 @@ def score_resume(resume_text: str, jd_text: str, ats_preset: str = None, cover_l
     cover_letter_matched = []
     cover_letter_missing = []
     if cover_letter_text:
-        cl_keywords = set(extract_keywords(cover_letter_text))
-        cl_matched = sorted(cl_keywords & jd_kw_set)
-        cl_missing = sorted(jd_kw_set - cl_keywords)
-        cl_score = min(100, round(len(cl_matched) / max(1, len(jd_kw_set)) * 100))
+        cl_keywords_raw = set(extract_keywords(cover_letter_text))
+        cl_keywords = {_canonical_skill(k) for k in cl_keywords_raw} | _find_skills_in_text(cover_letter_text)
+        cl_matched = sorted(cl_keywords & jd_canon)
+        cl_missing = sorted(jd_canon - cl_keywords)
+        cl_score = min(100, round(len(cl_matched) / max(1, len(jd_canon)) * 100))
         cover_letter_score = cl_score
         cover_letter_matched = cl_matched
         cover_letter_missing = cl_missing
 
     # ------------------------------------------------------------------
-    # 18. Word counts
+    # 18. Experience fit — years-of-experience, seniority, date ranges
+    # ------------------------------------------------------------------
+    exp_fit = analyze_experience_fit(resume_text, jd_text)
+
+    # Surface experience-fit findings as suggestions the user can act on.
+    if exp_fit["required_years"] is not None and not exp_fit["years_match"]:
+        suggestions.insert(0, (
+            f"JD requires {exp_fit['required_years']}+ years of experience; "
+            f"your resume shows {exp_fit['candidate_years']:.1f}. "
+            f"Emphasise scope, ownership, and impact on earlier roles to close the gap."
+        ))
+    if exp_fit["seniority_warning"]:
+        suggestions.insert(0, exp_fit["seniority_warning"])
+    if exp_fit["employment_gaps"]:
+        gap = exp_fit["employment_gaps"][0]
+        suggestions.append(
+            f"Employment gap of ~{gap['gap_months']} months detected "
+            f"({gap['after']} → {gap['before']}). If relevant, briefly explain it "
+            f"(education, caregiving, project work) to pre-empt recruiter questions."
+        )
+
+    # ------------------------------------------------------------------
+    # 19. Word counts
     # ------------------------------------------------------------------
     resume_word_count = len(resume_text.split())
     jd_word_count = len(jd_text.split())
@@ -1169,6 +1796,19 @@ def score_resume(resume_text: str, jd_text: str, ats_preset: str = None, cover_l
         "cover_letter_score": cover_letter_score,
         "cover_letter_matched": cover_letter_matched,
         "cover_letter_missing": cover_letter_missing[:10],
+        # Experience-fit block (JD comparison mode)
+        "required_years":       exp_fit["required_years"],
+        "candidate_years":      exp_fit["candidate_years"],
+        "years_match":          exp_fit["years_match"],
+        "experience_gap_years": exp_fit["experience_gap_years"],
+        "years_fit_score":      exp_fit["years_fit_score"],
+        "jd_seniority":         exp_fit["jd_seniority"],
+        "resume_seniority":     exp_fit["resume_seniority"],
+        "implied_seniority":    exp_fit["implied_seniority"],
+        "seniority_mismatch":   exp_fit["seniority_mismatch"],
+        "seniority_warning":    exp_fit["seniority_warning"],
+        "positions_found":      exp_fit["positions_found"],
+        "employment_gaps":      exp_fit["employment_gaps"],
         "matched_keywords": matched_keywords,
         "missing_keywords": missing_keywords,
         "extra_keywords": extra_keywords,
@@ -1207,11 +1847,11 @@ def score_resume_only(resume_text: str, ats_preset: str = None) -> dict:
     resume_keywords = extract_keywords(resume_text)
 
     # ------------------------------------------------------------------
-    # 2. skills_score — how many skills from the vocab appear in the resume
+    # 2. skills_score — synonym-aware count of distinct skills in the resume.
     #    15 distinct skills = 100 (generous threshold for diverse profiles)
     # ------------------------------------------------------------------
-    resume_skill_count = sum(1 for s in TECH_SKILLS if s in resume_lower)
-    skills_score = min(100, round((resume_skill_count / 15) * 100))
+    resume_skills = _find_skills_in_text(resume_text)
+    skills_score = min(100, round((len(resume_skills) / 15) * 100))
 
     # ------------------------------------------------------------------
     # 3. experience_score — same formula as JD-comparison mode
@@ -1348,6 +1988,18 @@ def score_resume_only(resume_text: str, ats_preset: str = None) -> dict:
     buzzwords_found = detect_buzzwords(resume_text)
 
     # ------------------------------------------------------------------
+    # 15. Experience fit — no JD here, so we only surface the candidate's
+    # own years, implied seniority, and any employment gaps.
+    # ------------------------------------------------------------------
+    exp_fit = analyze_experience_fit(resume_text, jd_text=None)
+    if exp_fit["employment_gaps"]:
+        gap = exp_fit["employment_gaps"][0]
+        suggestions.append(
+            f"Employment gap of ~{gap['gap_months']} months detected "
+            f"({gap['after']} → {gap['before']}). If relevant, briefly explain it."
+        )
+
+    # ------------------------------------------------------------------
     # Return the result dict (compatible with ReportCard schema)
     # ------------------------------------------------------------------
     return {
@@ -1377,6 +2029,19 @@ def score_resume_only(resume_text: str, ats_preset: str = None) -> dict:
         "cover_letter_score": None,
         "cover_letter_matched": [],
         "cover_letter_missing": [],
+        # Experience-fit block (ATS-only mode — no JD requirement)
+        "required_years":       None,
+        "candidate_years":      exp_fit["candidate_years"],
+        "years_match":          True,
+        "experience_gap_years": 0.0,
+        "years_fit_score":      None,
+        "jd_seniority":         None,
+        "resume_seniority":     exp_fit["resume_seniority"],
+        "implied_seniority":    exp_fit["implied_seniority"],
+        "seniority_mismatch":   False,
+        "seniority_warning":    None,
+        "positions_found":      exp_fit["positions_found"],
+        "employment_gaps":      exp_fit["employment_gaps"],
         "matched_keywords": [],
         "missing_keywords": [],
         "extra_keywords": resume_keywords[:50],  # Top 50 resume keywords
