@@ -10,7 +10,7 @@ Render Start Command:
 Routes:
     GET  /health   — health check for Render
     POST /analyze  — accepts resume + JD PDFs, returns score report JSON
-    POST /compare  — accepts resume + up to 3 JD PDFs, returns array of score reports
+    POST /compare  — accepts resume + up to 5 JD PDFs, returns array of score reports
 """
 
 import os
@@ -79,6 +79,7 @@ async def health_check():
 async def analyze_resume(
     resume: UploadFile = File(...),
     jd: Optional[UploadFile] = None,
+    jd_text: Optional[str] = Form(None),
     cover_letter: Optional[UploadFile] = None,
     ats_preset: Optional[str] = Form(None),
 ):
@@ -86,11 +87,13 @@ async def analyze_resume(
     Analyse a resume and return a scoring report.
 
     Accepts multipart/form-data with:
-        resume  — PDF of the candidate's resume (required)
-        jd      — PDF of the job description (optional)
+        resume   — PDF/DOCX of the candidate's resume (required)
+        jd       — PDF/DOCX of the job description (optional)
+        jd_text  — raw pasted JD text (optional, used when no jd file given)
 
-    When jd is omitted, uses ATS-readiness mode (skills breadth, experience,
-    education, sections completeness) instead of JD-comparison mode.
+    When neither jd nor jd_text is provided, uses ATS-readiness mode
+    (skills breadth, experience, education, sections completeness)
+    instead of JD-comparison mode.
 
     Returns a JSON object containing overall score, sub-scores, keyword
     lists, section analysis, and improvement suggestions.
@@ -130,30 +133,44 @@ async def analyze_resume(
     valid_presets = {"greenhouse", "workday", "lever"}
     preset_norm = ats_preset.lower() if ats_preset and ats_preset.lower() in valid_presets else None
 
-    # Step 4 — Run NLP scoring (mode depends on whether a JD was uploaded)
+    # Step 4 — Run NLP scoring (mode depends on whether a JD was provided)
+    # A file upload wins over pasted text if both happen to be sent.
+    pasted_jd = (jd_text or "").strip()
+    has_jd = jd is not None or bool(pasted_jd)
+
     try:
-        if jd is None:
+        if not has_jd:
             # ATS-only mode: score resume on its own merits
             result = score_resume_only(resume_text, ats_preset=preset_norm)
             result["resume_text"] = resume_text[:6000]
             result["jd_text"] = ""
         else:
-            # JD-comparison mode: read and parse the JD, then compare
-            try:
-                jd_bytes = await jd.read()
-                jd_text = extract_text(jd_bytes, jd.filename or "jd.pdf")
-            except ValueError as exc:
-                logger.warning("JD parse failed: %s", exc)
-                raise HTTPException(status_code=422, detail=str(exc))
-            except Exception as exc:
-                logger.exception("Unexpected JD parse error")
-                raise HTTPException(
-                    status_code=422,
-                    detail=f"Could not extract text from job description: {type(exc).__name__}: {exc}",
-                )
-            result = score_resume(resume_text, jd_text, ats_preset=preset_norm, cover_letter_text=cover_letter_text)
+            # JD-comparison mode: resolve JD text from file upload or pasted input
+            if jd is not None:
+                try:
+                    jd_bytes = await jd.read()
+                    resolved_jd_text = extract_text(jd_bytes, jd.filename or "jd.pdf")
+                except ValueError as exc:
+                    logger.warning("JD parse failed: %s", exc)
+                    raise HTTPException(status_code=422, detail=str(exc))
+                except Exception as exc:
+                    logger.exception("Unexpected JD parse error")
+                    raise HTTPException(
+                        status_code=422,
+                        detail=f"Could not extract text from job description: {type(exc).__name__}: {exc}",
+                    )
+            else:
+                # Pasted text path — require a reasonable minimum length
+                if len(pasted_jd) < 30:
+                    raise HTTPException(
+                        status_code=422,
+                        detail="Pasted job description is too short. Please include the full JD (at least 30 characters).",
+                    )
+                resolved_jd_text = pasted_jd
+
+            result = score_resume(resume_text, resolved_jd_text, ats_preset=preset_norm, cover_letter_text=cover_letter_text)
             result["resume_text"] = resume_text[:6000]
-            result["jd_text"] = jd_text[:4000]
+            result["jd_text"] = resolved_jd_text[:4000]
     except HTTPException:
         raise
     except Exception as exc:
@@ -173,19 +190,19 @@ async def compare_resume(
     jds: List[UploadFile] = File(...),
 ):
     """
-    Compare one resume against multiple job descriptions (up to 3).
+    Compare one resume against multiple job descriptions (up to 5).
 
     Accepts multipart/form-data with:
         resume  — PDF/DOCX of the candidate's resume (required)
-        jds     — List of 1-3 PDF/DOCX job description files (required)
+        jds     — List of 1-5 PDF/DOCX job description files (required)
 
     Returns a JSON array of score report objects, one per JD, each including
     a `jd_label` field set to the original filename.
     """
     if not jds:
         raise HTTPException(status_code=422, detail="At least one JD file is required.")
-    if len(jds) > 3:
-        raise HTTPException(status_code=422, detail="Maximum 3 JD files allowed per comparison.")
+    if len(jds) > 5:
+        raise HTTPException(status_code=422, detail="Maximum 5 JD files allowed per comparison.")
 
     # Parse the resume once
     try:

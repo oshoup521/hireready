@@ -34,6 +34,27 @@
   gap: 0.6rem;
 }
 
+/* Logo/name is a button now so clicking it can reset the app.
+   Strip the native button chrome and keep it visually identical. */
+.header-logo-btn {
+  background: transparent;
+  border: none;
+  padding: 0;
+  margin: 0;
+  cursor: pointer;
+  font-family: inherit;
+  color: inherit;
+  border-radius: 8px;
+  transition: opacity 0.15s ease, transform 0.1s ease;
+}
+
+.header-logo-btn:hover { opacity: 0.85; }
+.header-logo-btn:active { transform: scale(0.98); }
+.header-logo-btn:focus-visible {
+  outline: 2px solid var(--accent);
+  outline-offset: 2px;
+}
+
 .header-icon {
   width: 32px;
   height: 32px;

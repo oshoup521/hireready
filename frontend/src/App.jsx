@@ -16,7 +16,6 @@ const WAKEUP_DELAY_MS = 5000
 export default function App() {
   const [report, setReport] = useState(null)
   const [resumeFile, setResumeFile] = useState(null)
-  const [jdFile, setJdFile] = useState(null)
   const [isLoading, setIsLoading] = useState(false)
   const [isWakingUp, setIsWakingUp] = useState(false)
   const [error, setError] = useState(null)
@@ -50,20 +49,19 @@ export default function App() {
   function resetAnalysis() {
     setReport(null)
     setResumeFile(null)
-    setJdFile(null)
     setError(null)
     setUploadKey((k) => k + 1)   // remounts UploadSection, clearing its file state
     window.scrollTo({ top: 0, behavior: 'smooth' })
   }
 
-  // Submit resume (and optionally JD/cover letter) to the backend
-  async function analyzeResume(resumeFile, jdFile = null, coverLetterFile = null, atsPreset = null) {
+  // Submit resume (and optionally JD/cover letter) to the backend.
+  // jdPayload is null (ATS-only) | { file: File } | { text: string }
+  async function analyzeResume(resumeFile, jdPayload = null, coverLetterFile = null, atsPreset = null) {
     setIsLoading(true)
     setIsWakingUp(false)
     setError(null)
     setReport(null)
     setResumeFile(resumeFile)
-    setJdFile(jdFile)
 
     // Start wakeup timer — show banner if backend hasn't responded in 5s
     const wakeupTimer = setTimeout(() => {
@@ -73,8 +71,12 @@ export default function App() {
     try {
       const formData = new FormData()
       formData.append('resume', resumeFile)
-      // Only append jd when provided (null = ATS-only mode)
-      if (jdFile) formData.append('jd', jdFile)
+      // Append JD only when provided. File wins over text when both are set.
+      if (jdPayload?.file) {
+        formData.append('jd', jdPayload.file)
+      } else if (jdPayload?.text) {
+        formData.append('jd_text', jdPayload.text)
+      }
       if (coverLetterFile) formData.append('cover_letter', coverLetterFile)
       if (atsPreset) formData.append('ats_preset', atsPreset)
 
@@ -107,7 +109,16 @@ export default function App() {
   return (
     <>
       {/* Header lives outside app-wrapper so the sticky glass spans the full viewport width */}
-      <Header theme={theme} onToggleTheme={toggleTheme} compareMode={compareMode} onToggleCompare={() => setCompareMode((c) => !c)} />
+      <Header
+        theme={theme}
+        onToggleTheme={toggleTheme}
+        compareMode={compareMode}
+        onToggleCompare={() => setCompareMode((c) => !c)}
+        onLogoClick={() => {
+          setCompareMode(false)
+          resetAnalysis()
+        }}
+      />
     <div className={`app-wrapper${report ? ' app-wrapper--wide' : ''}`}>
 
       {/* Centering wrapper: keeps upload in viewport centre until report arrives,

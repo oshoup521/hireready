@@ -3,10 +3,10 @@ import ScoreRing from './ScoreRing.jsx'
 import ProgressBar from './ProgressBar.jsx'
 import './CompareMode.css'
 
-const MAX_JDS = 3
+const MAX_JDS = 5
 
 /**
- * CompareMode — lets users upload one resume against up to 3 JDs
+ * CompareMode — lets users upload one resume against up to 5 JDs
  * and see scores side by side.
  *
  * Props:
@@ -15,13 +15,18 @@ const MAX_JDS = 3
  */
 export default function CompareMode({ apiUrl, onBack }) {
   const [resumeFile, setResumeFile] = useState(null)
-  const [jdFiles, setJdFiles] = useState([null, null, null])
+  const [jdFiles, setJdFiles] = useState(() => Array(MAX_JDS).fill(null))
   const [results, setResults] = useState(null)
   const [isLoading, setIsLoading] = useState(false)
   const [error, setError] = useState(null)
 
   const resumeRef = useRef(null)
-  const jdRefs = [useRef(null), useRef(null), useRef(null)]
+  // Stable ref array sized to MAX_JDS — created once on mount.
+  const jdRefsHolder = useRef(null)
+  if (jdRefsHolder.current === null) {
+    jdRefsHolder.current = Array.from({ length: MAX_JDS }, () => ({ current: null }))
+  }
+  const jdRefs = jdRefsHolder.current
 
   function isValid(f) {
     if (!f) return false
@@ -68,7 +73,7 @@ export default function CompareMode({ apiUrl, onBack }) {
 
   function reset() {
     setResumeFile(null)
-    setJdFiles([null, null, null])
+    setJdFiles(Array(MAX_JDS).fill(null))
     setResults(null)
     setError(null)
   }
@@ -85,7 +90,7 @@ export default function CompareMode({ apiUrl, onBack }) {
         <div className="compare-header-left">
           <h2 className="compare-title">Multi-JD Comparison</h2>
           <p className="compare-subtitle">
-            Upload your resume once and compare it against up to 3 job descriptions simultaneously.
+            Upload your resume once and compare it against up to {MAX_JDS} job descriptions simultaneously.
           </p>
         </div>
         <button className="compare-back-btn" onClick={onBack} type="button">
@@ -118,7 +123,7 @@ export default function CompareMode({ apiUrl, onBack }) {
 
           {/* JD slots */}
           <div className="compare-jd-grid">
-            {[0, 1, 2].map((idx) => (
+            {Array.from({ length: MAX_JDS }, (_, idx) => idx).map((idx) => (
               <div key={idx} className="compare-upload-row">
                 <label className="compare-upload-label">
                   Job Description {idx + 1}{idx === 0 ? ' *' : ' (optional)'}

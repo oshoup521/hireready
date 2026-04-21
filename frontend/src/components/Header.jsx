@@ -7,17 +7,23 @@ import './Header.css'
  *   onToggleTheme    {function} called when the theme button is clicked
  *   compareMode      {bool}     true when compare mode is active
  *   onToggleCompare  {function} called when the compare button is clicked
+ *   onLogoClick      {function} called when the logo/name is clicked — resets app
  */
-export default function Header({ theme, onToggleTheme, compareMode, onToggleCompare }) {
+export default function Header({ theme, onToggleTheme, compareMode, onToggleCompare, onLogoClick }) {
   return (
     <header className="site-header">
       {/* Inner wrapper keeps content aligned to the same max-width as the page */}
       <div className="header-inner">
-        {/* Logo / app name */}
-        <div className="header-left">
+        {/* Logo / app name — clickable, resets to the initial state */}
+        <button
+          className="header-left header-logo-btn"
+          onClick={onLogoClick}
+          type="button"
+          aria-label="Go to home"
+        >
           <img src="/logo.svg" alt="HireReady Logo" className="header-icon" />
           <span className="header-logo">HireReady</span>
-        </div>
+        </button>
 
         {/* Tagline — hidden on small screens via CSS */}
         <div className="header-tagline">Know your chances before they do</div>

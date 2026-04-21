@@ -106,7 +106,7 @@
 
 .compare-jd-grid {
   display: grid;
-  grid-template-columns: repeat(3, 1fr);
+  grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
   gap: 0.75rem;
 }
 
@@ -133,9 +133,18 @@
 
 .compare-cards-grid {
   display: grid;
-  grid-template-columns: repeat(var(--col-count, 3), 1fr);
+  /* With up to 5 cards, keep each card ≥ 220px wide — narrower than that
+     and we wrap to a second row instead of crushing the content. */
+  grid-template-columns: repeat(var(--col-count, 3), minmax(220px, 1fr));
   gap: 1rem;
   align-items: start;
+}
+
+/* Tablet: keep cards readable by letting 5 wrap to 2 rows */
+@media (max-width: 1100px) {
+  .compare-cards-grid {
+    grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+  }
 }
 
 .compare-card {
