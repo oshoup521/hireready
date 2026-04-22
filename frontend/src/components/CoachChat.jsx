@@ -45,15 +45,9 @@ export default function CoachChat({ report, apiUrl }) {
   // backend ever omits the field (older reports in localStorage history).
   const isAtsOnly = report?.mode === 'resume_only'
   const starterChips = isAtsOnly ? CHIPS_ATS_ONLY : CHIPS_WITH_JD
-  // Show the hint bubble whenever the panel is closed — always visible so
-  // every user knows what the FAB does, not just first-timers.
+  // Show hint on mount; once dismissed (X clicked or panel opened) it stays gone.
   const [showHint, setShowHint] = useState(true)
   const scrollRef = useRef(null)
-
-  // Re-show hint whenever panel closes
-  useEffect(() => {
-    if (!isOpen) setShowHint(true)
-  }, [isOpen])
 
   function dismissHint() {
     setShowHint(false)

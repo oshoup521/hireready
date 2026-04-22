@@ -12,6 +12,8 @@
   backdrop-filter: blur(18px);
   -webkit-backdrop-filter: blur(18px);
   border-bottom: 1px solid var(--nav-glass-border);
+  /* Push content below the iPhone status bar (time / signal area) */
+  padding-top: env(safe-area-inset-top);
   /* Smooth transition when theme switches */
   transition: background 0.25s ease, border-color 0.25s ease;
 }
