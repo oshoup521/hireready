@@ -464,8 +464,9 @@
 /* ----- Mobile — FAB shrinks to icon, panel becomes a bottom drawer ----- */
 @media (max-width: 640px) {
   .coach-fab {
-    right: 1rem;
-    bottom: 1rem;
+    /* Push the FAB above the home indicator and away from the rounded corner */
+    right: max(1.25rem, env(safe-area-inset-right) + 0.75rem);
+    bottom: max(1.25rem, env(safe-area-inset-bottom) + 0.75rem);
     padding: 0.75rem;
     width: 52px;
     height: 52px;
@@ -516,14 +517,19 @@
     padding-top: 1.4rem;
   }
 
+  /* Input bar must clear the home indicator */
+  .coach-input {
+    padding-bottom: max(0.6rem, env(safe-area-inset-bottom) + 0.4rem);
+  }
+
   /* Show the backdrop only on mobile (drawer mode) */
   .coach-backdrop {
     display: block;
   }
 
   .coach-hint {
-    right: 1rem;
-    bottom: 5rem;
+    right: max(1rem, env(safe-area-inset-right) + 0.5rem);
+    bottom: max(5rem, env(safe-area-inset-bottom) + 4.5rem);
     max-width: calc(100vw - 2rem);
   }
 }

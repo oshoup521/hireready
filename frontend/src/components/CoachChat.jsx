@@ -45,28 +45,18 @@ export default function CoachChat({ report, apiUrl }) {
   // backend ever omits the field (older reports in localStorage history).
   const isAtsOnly = report?.mode === 'resume_only'
   const starterChips = isAtsOnly ? CHIPS_ATS_ONLY : CHIPS_WITH_JD
-  // Show a one-time intro bubble next to the FAB so first-time users know what
-  // it is. Auto-dismisses after 8s or when they open/close the panel once.
-  const [showHint, setShowHint] = useState(() => {
-    try {
-      return !localStorage.getItem('hireready-coach-seen')
-    } catch {
-      return true
-    }
-  })
+  // Show the hint bubble whenever the panel is closed — always visible so
+  // every user knows what the FAB does, not just first-timers.
+  const [showHint, setShowHint] = useState(true)
   const scrollRef = useRef(null)
 
-  // Auto-dismiss the intro hint after 8s
+  // Re-show hint whenever panel closes
   useEffect(() => {
-    if (!showHint) return
-    const t = setTimeout(() => dismissHint(), 8000)
-    return () => clearTimeout(t)
-
-  }, [showHint])
+    if (!isOpen) setShowHint(true)
+  }, [isOpen])
 
   function dismissHint() {
     setShowHint(false)
-    try { localStorage.setItem('hireready-coach-seen', '1') } catch {}
   }
 
   // Auto-scroll chat to the newest message (only when the panel is open)
@@ -150,7 +140,7 @@ export default function CoachChat({ report, apiUrl }) {
       {/* Floating action button — always visible when a report exists */}
       <button
         type="button"
-        className={`coach-fab${isOpen ? ' coach-fab--hidden' : ''}${showHint ? ' coach-fab--pulse' : ''}`}
+        className={`coach-fab${isOpen ? ' coach-fab--hidden' : ''}`}
         onClick={() => { dismissHint(); setIsOpen(true) }}
         aria-label="Open HireReady Coach"
       >
