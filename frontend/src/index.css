@@ -67,7 +67,12 @@ body {
   background-color: var(--bg-primary);
   color: var(--text-primary);
   line-height: 1.6;
+  /* 100dvh = dynamic viewport height: adjusts as iOS URL bar collapses/expands,
+     so the body doesn't stay locked to the "large" viewport and leave dead
+     black space below the content when the user scrolls to the bottom.
+     100vh is the fallback for browsers without dvh support. */
   min-height: 100vh;
+  min-height: 100dvh;
   /* Extend content above the home indicator so nothing is hidden */
   padding-bottom: env(safe-area-inset-bottom);
   transition: background-color 0.25s ease, color 0.25s ease;
