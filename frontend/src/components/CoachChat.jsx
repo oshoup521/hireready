@@ -65,6 +65,16 @@ export default function CoachChat({ report, apiUrl }) {
     scrollRef.current?.scrollIntoView({ behavior: 'smooth' })
   }, [messages, isLoading, isOpen])
 
+  // Lock body scroll while the panel is open (prevents background scroll on mobile)
+  useEffect(() => {
+    if (isOpen) {
+      document.body.style.overflow = 'hidden'
+    } else {
+      document.body.style.overflow = ''
+    }
+    return () => { document.body.style.overflow = '' }
+  }, [isOpen])
+
   // Escape key closes the panel — standard chat-widget UX
   useEffect(() => {
     if (!isOpen) return
