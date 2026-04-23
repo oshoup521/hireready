@@ -18,9 +18,13 @@ body.dark {
   --badge-matched: #1b3a2e;
   --badge-missing: #3a1b1b;
   --badge-extra: #1b2a3a;
-  /* Glassmorphism nav variables */
-  --nav-glass-bg: rgba(13, 13, 13, 0.72);
-  --nav-glass-border: rgba(46, 46, 46, 0.6);
+  /* Apple-style liquid glass — thin tint, bright top edge, hairline base.
+     The tint is cool-leaning (slight blue) because Apple's dark-mode
+     materials pick up a touch of blue from their vibrancy layer. */
+  --nav-glass-bg: rgba(22, 22, 28, 0.55);
+  --nav-glass-border: rgba(255, 255, 255, 0.08);
+  --nav-glass-highlight: rgba(255, 255, 255, 0.14);
+  --nav-glass-shine: rgba(255, 255, 255, 0.04);
 }
 
 /* ----- Light Theme ----- */
@@ -39,9 +43,12 @@ body.light {
   --badge-matched: #d4f5e4;
   --badge-missing: #fde8e8;
   --badge-extra: #e8effe;
-  /* Glassmorphism nav variables */
-  --nav-glass-bg: rgba(245, 245, 245, 0.72);
-  --nav-glass-border: rgba(224, 224, 224, 0.6);
+  /* Apple-style liquid glass — in light mode Apple bars lean almost white
+     with just a hint of the wallpaper showing through. */
+  --nav-glass-bg: rgba(252, 252, 253, 0.62);
+  --nav-glass-border: rgba(0, 0, 0, 0.08);
+  --nav-glass-highlight: rgba(255, 255, 255, 0.85);
+  --nav-glass-shine: rgba(255, 255, 255, 0.35);
 }
 
 /* ----- CSS Reset & Base ----- */

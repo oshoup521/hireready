@@ -180,24 +180,96 @@
 /* ----- Panel header ----- */
 .coach-panel__header {
   display: flex;
-  align-items: flex-start;
+  align-items: center;
   justify-content: space-between;
   gap: 0.75rem;
-  padding: 1rem 1.1rem 0.75rem;
+  padding: 0.85rem 1rem;
   border-bottom: 1px solid var(--border);
+  /* Accent-tinted gradient so the header stands apart from the chat body
+     instead of blending into it. Uses color-mix so it respects theme vars. */
+  background: linear-gradient(
+    135deg,
+    color-mix(in srgb, var(--accent) 18%, var(--bg-card)) 0%,
+    color-mix(in srgb, var(--accent) 6%, var(--bg-card)) 100%
+  );
+}
+
+.coach-panel__identity {
+  display: flex;
+  align-items: center;
+  gap: 0.65rem;
+  min-width: 0;
+}
+
+.coach-panel__avatar {
+  position: relative;
+  flex-shrink: 0;
+  width: 36px;
+  height: 36px;
+  border-radius: 50%;
+  background: var(--accent);
+  color: #ffffff;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  box-shadow: 0 4px 10px color-mix(in srgb, var(--accent) 45%, transparent);
+}
+
+.coach-panel__avatar svg {
+  width: 18px;
+  height: 18px;
+  fill: currentColor;
+}
+
+/* Little green "live" dot — signals the coach is ready, same pattern
+   as chat UIs like Intercom / Slack. */
+.coach-panel__status-dot {
+  position: absolute;
+  right: -1px;
+  bottom: -1px;
+  width: 10px;
+  height: 10px;
+  border-radius: 50%;
+  background: var(--success);
+  border: 2px solid var(--bg-card);
+}
+
+.coach-panel__identity-text {
+  min-width: 0;
 }
 
 .coach-panel__title {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.45rem;
   font-size: 1rem;
   font-weight: 600;
   color: var(--text-primary);
   letter-spacing: -0.01em;
 }
 
+.coach-panel__badge {
+  font-size: 0.58rem;
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  color: var(--accent);
+  background: color-mix(in srgb, var(--accent) 15%, transparent);
+  border: 1px solid color-mix(in srgb, var(--accent) 35%, transparent);
+  padding: 0.1rem 0.4rem;
+  border-radius: 999px;
+  text-transform: uppercase;
+  line-height: 1.4;
+}
+
 .coach-panel__subtitle {
-  font-size: 0.78rem;
+  font-size: 0.75rem;
   color: var(--text-secondary);
-  margin-top: 0.15rem;
+  margin-top: 0.1rem;
+}
+
+.coach-panel__status {
+  color: var(--success);
+  font-weight: 600;
 }
 
 .coach-panel__close {
@@ -521,7 +593,8 @@
   }
 
   .coach-panel__header {
-    padding-top: 1.4rem;
+    /* Leave room for the grab handle (::before) above the header content */
+    padding-top: 1.3rem;
   }
 
   /* Input bar must clear the home indicator */

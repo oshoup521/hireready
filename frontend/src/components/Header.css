@@ -2,20 +2,70 @@
    Header — sticky glassmorphism navbar
    ========================================================= */
 
-/* Full-width sticky bar with blur glass effect */
+/* Apple-style liquid glass navbar — modelled on the macOS menu bar /
+   iOS navigation bar "vibrancy" material. The look is built from four
+   stacked layers, in this order from back to front:
+     1. backdrop-filter: heavy blur + saturation + brightness. The
+        saturation boost (180%+) is the single biggest "Apple" cue —
+        it's what makes colours behind the glass stay rich instead of
+        going grey like ordinary frosted glass. The tiny brightness
+        lift pushes it toward that luminous, almost glowing feel.
+     2. background: a faint vertical gradient over the glass tint so
+        the strip isn't flat. Slightly brighter at the top, slightly
+        darker at the bottom — mimics how a curved lens catches light.
+     3. box-shadow (inset top): 1px bright highlight, the "wet" edge
+        that sells the convex-lens illusion.
+     4. ::after pseudo-element: a 0.5px hairline at the very bottom.
+        Apple uses sub-pixel hairlines on retina; we approximate with
+        a scaled transform so it stays crisp on non-retina too. */
 .site-header {
   position: sticky;
   top: 0;
   z-index: 100;
   width: 100%;
-  background: var(--nav-glass-bg);
-  backdrop-filter: blur(18px);
-  -webkit-backdrop-filter: blur(18px);
-  border-bottom: 1px solid var(--nav-glass-border);
+  background:
+    linear-gradient(
+      to bottom,
+      var(--nav-glass-shine) 0%,
+      transparent 60%
+    ),
+    var(--nav-glass-bg);
+  backdrop-filter: blur(30px) saturate(200%) brightness(108%);
+  -webkit-backdrop-filter: blur(30px) saturate(200%) brightness(108%);
+  border-bottom: none;
+  box-shadow:
+    inset 0 1px 0 var(--nav-glass-highlight),
+    0 1px 0 var(--nav-glass-border),
+    0 8px 24px -12px rgba(0, 0, 0, 0.25);
   /* Push content below the iPhone status bar (time / signal area) */
   padding-top: env(safe-area-inset-top);
-  /* Smooth transition when theme switches */
-  transition: background 0.25s ease, border-color 0.25s ease;
+  transition:
+    background 0.25s ease,
+    box-shadow 0.25s ease;
+}
+
+/* Crisp sub-pixel hairline at the bottom of the bar — the detail that
+   separates Apple's bars from generic glassmorphism. Rendered with a
+   scaled transform so it stays razor-thin on high-DPR displays. */
+.site-header::after {
+  content: '';
+  position: absolute;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  height: 1px;
+  background: var(--nav-glass-border);
+  transform: scaleY(0.5);
+  transform-origin: bottom;
+  pointer-events: none;
+}
+
+/* Safari / older Chromium that don't support backdrop-filter fall back to
+   a more opaque background so text stays readable. */
+@supports not ((backdrop-filter: blur(1px)) or (-webkit-backdrop-filter: blur(1px))) {
+  .site-header {
+    background: color-mix(in srgb, var(--bg-primary) 92%, transparent);
+  }
 }
 
 /* Inner wrapper: centres content and matches the page max-width */

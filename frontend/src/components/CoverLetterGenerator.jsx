@@ -25,8 +25,27 @@ export default function CoverLetterGenerator({ report, apiUrl }) {
   const jdText = report?.jd_text || ''
   const isJDMode = report?.mode === 'ats_vs_jd' && jdText
 
+  // Role is only required when we can't auto-detect it from a JD. Company
+  // has no reliable fallback ('your organisation' reads like a mail merge
+  // mistake), so we always require it.
+  const roleRequired = !isJDMode
+  const trimmedRole = roleName.trim()
+  const trimmedCompany = companyName.trim()
+  const canGenerate =
+    !!resumeText &&
+    !!trimmedCompany &&
+    (!roleRequired || !!trimmedRole)
+
   // ---- generate ----
   async function handleGenerate() {
+    if (!canGenerate) {
+      setError(
+        !trimmedCompany
+          ? 'Please enter the company name.'
+          : 'Please enter the role you are applying for.'
+      )
+      return
+    }
     setIsLoading(true)
     setError(null)
     setResult(null)
@@ -107,7 +126,8 @@ export default function CoverLetterGenerator({ report, apiUrl }) {
           <div className="clg-inputs">
             <div className="clg-field">
               <label className="clg-label" htmlFor="clg-role">
-                Role / Position
+                Role / Position{roleRequired && <span className="clg-required"> *</span>}
+                {!roleRequired && <span className="clg-optional"> (auto-detected from JD)</span>}
               </label>
               <input
                 id="clg-role"
@@ -116,11 +136,12 @@ export default function CoverLetterGenerator({ report, apiUrl }) {
                 placeholder={report?.detected_jd_title || 'e.g. Senior Software Engineer'}
                 value={roleName}
                 onChange={(e) => setRoleName(e.target.value)}
+                required={roleRequired}
               />
             </div>
             <div className="clg-field">
               <label className="clg-label" htmlFor="clg-company">
-                Company Name
+                Company Name<span className="clg-required"> *</span>
               </label>
               <input
                 id="clg-company"
@@ -129,6 +150,7 @@ export default function CoverLetterGenerator({ report, apiUrl }) {
                 placeholder="e.g. Acme Corp"
                 value={companyName}
                 onChange={(e) => setCompanyName(e.target.value)}
+                required
               />
             </div>
           </div>
@@ -136,7 +158,7 @@ export default function CoverLetterGenerator({ report, apiUrl }) {
           <button
             className="clg-generate-btn"
             onClick={handleGenerate}
-            disabled={isLoading || !resumeText}
+            disabled={isLoading || !canGenerate}
             type="button"
           >
             {isLoading ? '⏳ Generating…' : '✨ Generate Draft'}

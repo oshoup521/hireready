@@ -187,11 +187,24 @@ export default function CoachChat({ report, apiUrl, rewriteRequest, onRewriteHan
         aria-hidden={!isOpen}
       >
         <div className="coach-panel__header">
-          <div>
-            <h2 className="coach-panel__title">HireReady Coach</h2>
-            <p className="coach-panel__subtitle">
-              Ask about your report or tap a prompt.
-            </p>
+          <div className="coach-panel__identity">
+            <div className="coach-panel__avatar" aria-hidden="true">
+              <svg viewBox="0 0 24 24" focusable="false">
+                <path d="M12 3C6.48 3 2 6.94 2 11.5c0 2.05.9 3.93 2.4 5.38L3 21l4.56-1.3c1.36.52 2.88.8 4.44.8 5.52 0 10-3.94 10-8.5S17.52 3 12 3Zm-3.5 9.5a1 1 0 1 1 0-2 1 1 0 0 1 0 2Zm3.5 0a1 1 0 1 1 0-2 1 1 0 0 1 0 2Zm3.5 0a1 1 0 1 1 0-2 1 1 0 0 1 0 2Z" />
+              </svg>
+              <span className="coach-panel__status-dot" aria-hidden="true" />
+            </div>
+            <div className="coach-panel__identity-text">
+              <h2 className="coach-panel__title">
+                HireReady Coach
+                <span className="coach-panel__badge">AI</span>
+              </h2>
+              <p className="coach-panel__subtitle">
+                <span className="coach-panel__status">Online</span>
+                <span aria-hidden="true"> · </span>
+                Ask about your report or tap a prompt
+              </p>
+            </div>
           </div>
           <button
             type="button"

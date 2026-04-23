@@ -79,6 +79,20 @@
   letter-spacing: 0.05em;
 }
 
+.clg-required {
+  color: var(--danger);
+  font-weight: 700;
+}
+
+.clg-optional {
+  color: var(--text-secondary);
+  font-weight: 400;
+  text-transform: none;
+  letter-spacing: 0;
+  font-size: 0.68rem;
+  opacity: 0.8;
+}
+
 .clg-input {
   background: var(--bg-secondary);
   border: 1px solid var(--border);
