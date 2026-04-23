@@ -3,9 +3,18 @@ import { createPortal } from 'react-dom'
 import { LineChart, Line, Tooltip, ResponsiveContainer, YAxis } from 'recharts'
 import './ScoreHistory.css'
 
-const STORAGE_KEY = 'hireready-history'
-const APPLIED_KEY = 'hireready-applied'
-const MAX_ENTRIES = 10
+const STORAGE_KEY  = 'hireready-history'
+const STATUS_KEY   = 'hireready-status'   // replaces old APPLIED_KEY
+const MAX_ENTRIES  = 10
+
+// Status cycle order — null means not tracking
+const STATUS_CYCLE = [null, 'applied', 'interview', 'offer', 'rejected']
+const STATUS_META  = {
+  applied:   { label: 'Applied',   emoji: '📤', color: 'var(--accent)'   },
+  interview: { label: 'Interview', emoji: '📅', color: 'var(--warning)'  },
+  offer:     { label: 'Offer 🎉',  emoji: '',   color: 'var(--success)'  },
+  rejected:  { label: 'Rejected',  emoji: '✗',  color: 'var(--danger)'   },
+}
 
 /* ── Public helpers used by App.jsx ── */
 
@@ -41,33 +50,110 @@ export function saveToHistory(report, resumeFileName) {
 /** Clear all history entries. */
 export function clearHistory() {
   localStorage.removeItem(STORAGE_KEY)
-  localStorage.removeItem(APPLIED_KEY)
+  localStorage.removeItem(STATUS_KEY)
 }
 
-/** Load the set of "applied" entry IDs. */
-function loadApplied() {
+/** Load the status map { [id]: 'applied'|'interview'|'offer'|'rejected' }. */
+function loadStatuses() {
   try {
-    return new Set(JSON.parse(localStorage.getItem(APPLIED_KEY) || '[]'))
+    return JSON.parse(localStorage.getItem(STATUS_KEY) || '{}')
   } catch {
-    return new Set()
+    return {}
   }
 }
 
-/** Toggle the "applied" flag for a given entry ID. Returns updated Set. */
-function toggleApplied(id) {
-  const applied = loadApplied()
-  if (applied.has(id)) {
-    applied.delete(id)
+/** Advance the status for a given entry ID along STATUS_CYCLE. */
+function advanceStatus(id) {
+  const statuses = loadStatuses()
+  const current  = statuses[id] || null
+  const idx      = STATUS_CYCLE.indexOf(current)
+  // Cycle forward, wrapping null (last item) back to null (removes key)
+  const next     = STATUS_CYCLE[(idx + 1) % STATUS_CYCLE.length]
+  if (next === null) {
+    delete statuses[id]
   } else {
-    applied.add(id)
+    statuses[id] = next
   }
-  localStorage.setItem(APPLIED_KEY, JSON.stringify([...applied]))
-  return applied
+  localStorage.setItem(STATUS_KEY, JSON.stringify(statuses))
+  return statuses
+}
+
+/** Directly set a status (e.g. jump to 'rejected'). */
+function setStatus(id, status) {
+  const statuses = loadStatuses()
+  if (status === null) {
+    delete statuses[id]
+  } else {
+    statuses[id] = status
+  }
+  localStorage.setItem(STATUS_KEY, JSON.stringify(statuses))
+  return statuses
+}
+
+/** Open a print-ready HTML page with the full history table and trigger print. */
+function exportPDF(entries) {
+  const statuses = loadStatuses()
+  const rows = entries.map((e) => {
+    const status = statuses[e.id] || '—'
+    const scoreColor = e.overall_score >= 75 ? '#2e7d52' : e.overall_score >= 50 ? '#b57a00' : '#c0392b'
+    return `
+      <tr>
+        <td>${new Date(e.timestamp).toLocaleString()}</td>
+        <td>${e.resumeFileName}</td>
+        <td style="color:${scoreColor};font-weight:700">${e.overall_score}</td>
+        <td>${e.keyword_match_score ?? '—'}</td>
+        <td>${e.skills_score ?? '—'}</td>
+        <td>${e.experience_score ?? '—'}</td>
+        <td>${e.education_score ?? '—'}</td>
+        <td>${e.mode === 'ats_vs_jd' ? 'ATS vs JD' : 'ATS Only'}</td>
+        <td>${status}</td>
+      </tr>`
+  }).join('')
+
+  const html = `<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8"/>
+  <title>HireReady — Score History</title>
+  <style>
+    body { font-family: Inter, system-ui, sans-serif; font-size: 13px; color: #1a1a1a; padding: 2rem; }
+    h1 { font-size: 1.3rem; margin-bottom: 0.25rem; color: #6c63ff; }
+    p  { font-size: 0.8rem; color: #666; margin-bottom: 1.5rem; }
+    table { width: 100%; border-collapse: collapse; }
+    th { background: #f0f0f0; padding: 0.5rem 0.75rem; text-align: left; font-size: 0.72rem;
+         text-transform: uppercase; letter-spacing: 0.05em; border-bottom: 2px solid #ddd; }
+    td { padding: 0.45rem 0.75rem; border-bottom: 1px solid #eee; }
+    tr:nth-child(even) td { background: #fafafa; }
+    @media print { body { padding: 0; } }
+  </style>
+</head>
+<body>
+  <h1>HireReady — Score History</h1>
+  <p>Exported ${new Date().toLocaleString()} · ${entries.length} run${entries.length !== 1 ? 's' : ''}</p>
+  <table>
+    <thead>
+      <tr>
+        <th>Date</th><th>Resume File</th><th>Score</th><th>Keywords</th>
+        <th>Skills</th><th>Experience</th><th>Education</th><th>Mode</th><th>Status</th>
+      </tr>
+    </thead>
+    <tbody>${rows}</tbody>
+  </table>
+</body>
+</html>`
+
+  const w = window.open('', '_blank')
+  w.document.write(html)
+  w.document.close()
+  w.focus()
+  // Slight delay so the page renders before print dialog opens
+  setTimeout(() => { w.print() }, 300)
 }
 
 /** Export history entries as a CSV string and trigger download. */
 function exportCSV(entries) {
-  const headers = ['Date', 'Resume File', 'Overall Score', 'Keyword Match', 'Skills', 'Experience', 'Education', 'Mode']
+  const statuses = loadStatuses()
+  const headers = ['Date', 'Resume File', 'Overall Score', 'Keyword Match', 'Skills', 'Experience', 'Education', 'Mode', 'Status']
   const rows = entries.map((e) => [
     new Date(e.timestamp).toLocaleString(),
     e.resumeFileName,
@@ -77,6 +163,7 @@ function exportCSV(entries) {
     e.experience_score ?? '',
     e.education_score ?? '',
     e.mode ?? '',
+    statuses[e.id] ?? '',
   ])
   const csv = [headers, ...rows].map((r) => r.map((cell) => `"${String(cell).replace(/"/g, '""')}"`).join(',')).join('\n')
   const blob = new Blob([csv], { type: 'text/csv' })
@@ -115,7 +202,7 @@ const UNDO_DURATION = 5000   // ms — how long the undo window stays open
 
 export default function ScoreHistory({ entries, onRestore, onDelete, onClear }) {
   const [open, setOpen] = useState(false)
-  const [applied, setApplied] = useState(() => loadApplied())
+  const [statuses, setStatuses] = useState(() => loadStatuses())
   const [showConfirm, setShowConfirm] = useState(false)
   const [showExportConfirm, setShowExportConfirm] = useState(false)
   const [clearPending, setClearPending] = useState(false)
@@ -138,9 +225,12 @@ export default function ScoreHistory({ entries, onRestore, onDelete, onClear }) 
     score: e.overall_score,
   }))
 
-  function handleToggleApplied(id) {
-    const next = toggleApplied(id)
-    setApplied(new Set(next))
+  function handleAdvanceStatus(id) {
+    setStatuses(advanceStatus(id))
+  }
+
+  function handleSetRejected(id) {
+    setStatuses(setStatus(id, 'rejected'))
   }
 
   // ── Single-entry delete ──────────────────────────────────────────────
@@ -310,8 +400,9 @@ export default function ScoreHistory({ entries, onRestore, onDelete, onClear }) 
 
           <div className={`history-list${clearPending ? ' history-list--hidden' : ''}`}>
             {entries.map((entry) => {
-              const isBest    = entry.overall_score === bestScore
-              const isApplied = applied.has(entry.id)
+              const isBest      = entry.overall_score === bestScore
+              const entryStatus = statuses[entry.id] || null
+              const statusInfo  = entryStatus ? STATUS_META[entryStatus] : null
 
               // Replace the pending-delete entry with an inline undo row
               if (deletePending?.id === entry.id) {
@@ -335,7 +426,7 @@ export default function ScoreHistory({ entries, onRestore, onDelete, onClear }) 
               return (
                 <div
                   key={entry.id}
-                  className={`history-entry${isBest ? ' history-entry--best' : ''}${isApplied ? ' history-entry--applied' : ''}`}
+                  className={`history-entry${isBest ? ' history-entry--best' : ''}${entryStatus ? ` history-entry--${entryStatus}` : ''}`}
                 >
                   <div className="history-entry-left">
                     {/* Best score crown */}
@@ -360,15 +451,25 @@ export default function ScoreHistory({ entries, onRestore, onDelete, onClear }) 
                             month: 'short', day: 'numeric', hour: '2-digit', minute: '2-digit',
                           })}
                         </span>
-                        {/* Applied tag */}
+                        {/* Status tracker pill */}
                         <button
-                          className={`history-applied-tag ${isApplied ? 'history-applied-tag--active' : ''}`}
-                          onClick={() => handleToggleApplied(entry.id)}
+                          className={`history-status-btn${entryStatus ? ` history-status-btn--${entryStatus}` : ''}`}
+                          onClick={() => handleAdvanceStatus(entry.id)}
                           type="button"
-                          title={isApplied ? 'Mark as not applied' : 'Mark as applied'}
+                          title="Cycle status: Track → Applied → Interview → Offer → clear"
+                          style={statusInfo ? { borderColor: statusInfo.color, color: statusInfo.color } : {}}
                         >
-                          {isApplied ? '✅ Applied' : '＋ Applied?'}
+                          {statusInfo ? `${statusInfo.emoji} ${statusInfo.label}`.trim() : '＋ Track'}
                         </button>
+                        {/* Quick reject — only shown when actively tracking but not yet concluded */}
+                        {(entryStatus === 'applied' || entryStatus === 'interview') && (
+                          <button
+                            className="history-reject-btn"
+                            onClick={() => handleSetRejected(entry.id)}
+                            type="button"
+                            title="Mark as rejected"
+                          >✗</button>
+                        )}
                       </div>
                     </div>
                   </div>
@@ -400,7 +501,10 @@ export default function ScoreHistory({ entries, onRestore, onDelete, onClear }) 
           {!clearPending && (
             <div className="history-footer">
               <button className="history-export-btn" onClick={handleExportRequest} type="button">
-                ⬇ Export CSV
+                ⬇ CSV
+              </button>
+              <button className="history-export-btn history-export-btn--pdf" onClick={() => exportPDF(entries)} type="button">
+                🖨 PDF
               </button>
               <button className="history-clear-btn" onClick={handleClearRequest} type="button">
                 Clear history

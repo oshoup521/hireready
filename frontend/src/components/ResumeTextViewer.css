@@ -232,6 +232,37 @@
   height: 0.6rem;
 }
 
+/* Rewrite button — hidden until line is hovered, always visible on touch */
+.atv-line--rewritable {
+  padding-right: 1.6rem; /* reserve space so text doesn't overlap button */
+}
+
+.atv-rewrite-btn {
+  position: absolute;
+  right: 0;
+  top: 50%;
+  transform: translateY(-50%);
+  background: transparent;
+  border: none;
+  cursor: pointer;
+  font-size: 0.7rem;
+  padding: 0 0.1rem;
+  opacity: 0;
+  transition: opacity 0.15s;
+  line-height: 1;
+}
+
+.atv-line--rewritable:hover .atv-rewrite-btn {
+  opacity: 1;
+}
+
+/* Always visible on touch devices */
+@media (hover: none) {
+  .atv-rewrite-btn {
+    opacity: 0.5;
+  }
+}
+
 /* Empty state */
 .atv-empty {
   color: var(--text-secondary);

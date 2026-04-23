@@ -38,7 +38,7 @@
 - 📊 **Visual report card** — Scores, charts, keyword pills, section audit, rewrite suggestions — all in one clean UI.
 - ⚖️ **Multi-JD compare mode** — Score your resume against **up to 5 JDs** side by side.
 - 💬 **Resume Coach chatbot** *(optional)* — Ask follow-up questions about your report. Walks a ranked pool of free-tier LLMs (OpenRouter / Groq / Gemini / Cerebras) until one responds.
-- 🕒 **Track your progress** — Score history in localStorage lets you see improvement across resume versions.
+- 🕒 **Track your progress** — Score history with full job-application status tracker (Applied → Interview → Offer / Rejected).
 - 🧪 **Try before you upload** — Built-in sample resume and JD so anyone can test the app instantly.
 - 🆓 **Free to deploy** — Runs on Render + Vercel free tiers.
 
@@ -61,6 +61,8 @@
 <tr bgcolor="#0d1117"><td>💼</td><td><b>Experience Score</b></td><td>Action verbs, quantified achievements, experience keywords</td></tr>
 <tr bgcolor="#161b22"><td>🎓</td><td><b>Education Score</b></td><td>Degree, university, and qualification detection</td></tr>
 <tr bgcolor="#0d1117"><td>🔀</td><td><b>Skill Synonyms</b></td><td><code>js</code>↔<code>javascript</code>, <code>k8s</code>↔<code>kubernetes</code>, <code>ml</code>↔<code>machine learning</code>, and more</td></tr>
+<tr bgcolor="#161b22"><td>💡</td><td><b>Score Explanations</b></td><td>Plain-English "why" hint under every score bar — e.g. "Matched 8/12 JD keywords. Missing: go, rust…"</td></tr>
+<tr bgcolor="#0d1117"><td>🏢</td><td><b>JD Role & Company Detection</b></td><td>Auto-detects job title and company name from JD — shows "Analyzing for: Senior Engineer @ Google"</td></tr>
 </tbody>
 </table>
 
@@ -131,6 +133,7 @@
 <tr bgcolor="#161b22"><td>🗒️</td><td><b>Improvement Tips</b></td><td>Actionable suggestions based on score gaps</td></tr>
 <tr bgcolor="#0d1117"><td>✏️</td><td><b>Bullet Rewrites</b></td><td>Weak bullets rewritten with action verb + metric placeholder</td></tr>
 <tr bgcolor="#161b22"><td>📋</td><td><b>Copy Rewritten Bullet</b></td><td>One-click copy button on every rewrite — paste straight back into your resume</td></tr>
+<tr bgcolor="#0d1117"><td>✏️</td><td><b>Inline Bullet Rewrite</b></td><td>Hover any resume line in the text viewer → ✏️ button sends it to Coach for an instant AI rewrite</td></tr>
 </tbody>
 </table>
 
@@ -145,7 +148,8 @@
 <tr bgcolor="#161b22"><td>🤝</td><td><b>Contextual Chat</b></td><td>Every turn re-sends the full report so the model always has your data</td></tr>
 <tr bgcolor="#0d1117"><td>🪜</td><td><b>Fallback Pool</b></td><td>Walks OpenRouter → Groq → Gemini → Cerebras free-tier models; first to respond wins</td></tr>
 <tr bgcolor="#161b22"><td>🧭</td><td><b>Mode-Aware</b></td><td>Coach doesn't discuss JD match when no JD was provided</td></tr>
-<tr bgcolor="#0d1117"><td>🔑</td><td><b>Optional</b></td><td>App works without any API keys — coach stays disabled if none are set</td></tr>
+<tr bgcolor="#0d1117"><td>✏️</td><td><b>Inline Rewrite</b></td><td>Click ✏️ on any resume bullet to auto-open Coach with that line pre-loaded for rewriting</td></tr>
+<tr bgcolor="#161b22"><td>🔑</td><td><b>Optional</b></td><td>App works without any API keys — coach stays disabled if none are set</td></tr>
 </tbody>
 </table>
 
@@ -168,10 +172,12 @@
 <tr bgcolor="#161b22"><td>⚖️</td><td><b>Multi-JD Compare</b></td><td>One resume vs <b>up to 5</b> JDs side by side</td></tr>
 <tr bgcolor="#0d1117"><td>🧪</td><td><b>Sample Files</b></td><td>Test instantly without uploading your own files</td></tr>
 <tr bgcolor="#161b22"><td>🔄</td><td><b>Re-Analyze Button</b></td><td>Swap resume without refreshing the page</td></tr>
-<tr bgcolor="#0d1117"><td>📥</td><td><b>Download as PDF</b></td><td>Real PDF via jsPDF + html2canvas — no print dialog, works offline</td></tr>
+<tr bgcolor="#0d1117"><td>📥</td><td><b>Download as PDF</b></td><td>Native browser print-to-PDF — reliable across all CSS (no html2canvas limitations)</td></tr>
 <tr bgcolor="#161b22"><td>🔁</td><td><b>Run Diff View</b></td><td>Side-by-side score delta (▲/▼) + keyword changes vs previous run</td></tr>
-<tr bgcolor="#161b22"><td>🎊</td><td><b>Confetti Animation</b></td><td>Celebration burst when your score hits 75+</td></tr>
-<tr bgcolor="#0d1117"><td>🎴</td><td><b>Score Share Card</b></td><td>Spotify Wrapped-style card — download as PNG to share</td></tr>
+<tr bgcolor="#0d1117"><td>🎊</td><td><b>Confetti Animation</b></td><td>Celebration burst when your score hits 75+</td></tr>
+<tr bgcolor="#161b22"><td>🎴</td><td><b>Score Share Card</b></td><td>Spotify Wrapped-style card — download as PNG or share natively on mobile (WhatsApp, LinkedIn…)</td></tr>
+<tr bgcolor="#0d1117"><td>🌗</td><td><b>System Theme Detection</b></td><td>Auto-matches OS dark/light on first visit; remembers manual toggle via localStorage</td></tr>
+<tr bgcolor="#161b22"><td>🗺️</td><td><b>Section Heatmap</b></td><td>Resume sections shown as color-coded pills — green (present), red (critical missing), orange (recommended missing)</td></tr>
 </tbody>
 </table>
 
@@ -186,15 +192,16 @@
 <tr bgcolor="#161b22"><td>💾</td><td><b>Persistent History</b></td><td>Last 10 runs saved in localStorage</td></tr>
 <tr bgcolor="#0d1117"><td>👁️</td><td><b>One-Click Restore</b></td><td>View any past report — list auto-collapses</td></tr>
 <tr bgcolor="#161b22"><td>📈</td><td><b>Score Trend Chart</b></td><td>Line graph across history runs</td></tr>
-<tr bgcolor="#0d1117"><td>✅</td><td><b>Applied Tag</b></td><td>Mark each entry as "Applied" — persisted in localStorage</td></tr>
+<tr bgcolor="#0d1117"><td>📋</td><td><b>Job Application Tracker</b></td><td>Status cycle per entry: Track → Applied → Interview → Offer / Rejected — persisted in localStorage</td></tr>
 <tr bgcolor="#161b22"><td>👑</td><td><b>Best Score Badge</b></td><td>Crown icon on your highest-scoring entry</td></tr>
 <tr bgcolor="#0d1117"><td>⬇️</td><td><b>Export History CSV</b></td><td>Download all past runs as a spreadsheet</td></tr>
-<tr bgcolor="#161b22"><td>🗑️</td><td><b>Clear History</b></td><td>Wipes history and dismisses open report</td></tr>
+<tr bgcolor="#161b22"><td>🖨️</td><td><b>Export History PDF</b></td><td>Print-ready history table in a new tab — save as PDF from the browser</td></tr>
+<tr bgcolor="#0d1117"><td>🗑️</td><td><b>Clear History</b></td><td>Wipes history and dismisses open report</td></tr>
 <tr bgcolor="#0d1117"><td>📝</td><td><b>Cover Letter Analyzer</b></td><td>Upload cover letter alongside resume — JD match score shown</td></tr>
 <tr bgcolor="#161b22"><td>✉️</td><td><b>Cover Letter Generator</b></td><td>Generates a tailored cover letter draft from your resume + JD — template-based, no LLM, fully offline</td></tr>
 <tr bgcolor="#161b22"><td>👤</td><td><b>Role-Specific Scoring</b></td><td>Adjusted weights for Software Engineer / PM / Data Scientist</td></tr>
 <tr bgcolor="#0d1117"><td>🏢</td><td><b>ATS System Presets</b></td><td>Greenhouse / Workday / Lever — each applies its own scoring rules</td></tr>
-<tr bgcolor="#161b22"><td>🌙</td><td><b>Dark / Light Theme</b></td><td>Toggle with preference saved in localStorage</td></tr>
+<tr bgcolor="#161b22"><td>🌙</td><td><b>Dark / Light Theme</b></td><td>Auto-detects OS preference on first visit; toggle saves to localStorage</td></tr>
 <tr bgcolor="#0d1117"><td>📱</td><td><b>Responsive Design</b></td><td>Mobile-first, stacks cleanly on small screens</td></tr>
 <tr bgcolor="#161b22"><td>🖨️</td><td><b>Print Styles</b></td><td>Clean white PDF output via <code>@media print</code></td></tr>
 </tbody>
@@ -437,7 +444,15 @@ Accepts `multipart/form-data`. The JD is optional — omit it to run in **ATS-on
 
   "title_relevance_score": 80,
   "detected_jd_title": "Senior Software Engineer",
+  "detected_company": "Google",
   "job_title_match": true,
+
+  "score_explanations": {
+    "keyword_match": "Matched 8 of 12 JD keywords (e.g. python, react). Missing: go, rust…",
+    "skills": "Matched 4 of 6 skills from the JD (e.g. python, react). Missing: go, rust",
+    "experience": "Found 6 experience indicators with 3 quantified achievements",
+    "education": "Strong education section detected (degree, institution, and qualifiers found)"
+  },
 
   "required_years": 5,
   "candidate_years": 3.5,

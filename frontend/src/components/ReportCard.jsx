@@ -81,6 +81,58 @@ function useCopy() {
  *   mode === 'ats_vs_jd'    — shows keyword match score + JD comparison panels
  *   mode === 'resume_only'  — shows sections score + resume keywords only panel
  */
+// Sections that, if missing, are genuinely critical vs merely recommended
+const CRITICAL_SECTIONS    = new Set(['Summary', 'Experience', 'Education', 'Skills'])
+const RECOMMENDED_SECTIONS = new Set(['Projects', 'Certifications'])
+
+function SectionsHeatmap({ found, missing }) {
+  // Merge all sections into one flat list preserving a stable display order
+  const all = [
+    ...found.map(s => ({ name: s, state: 'found' })),
+    ...missing.map(s => ({
+      name: s,
+      state: CRITICAL_SECTIONS.has(s) ? 'critical' : RECOMMENDED_SECTIONS.has(s) ? 'recommended' : 'optional',
+    })),
+  ]
+
+  // Stable sort: found first, then critical missing, then recommended, then optional
+  const ORDER = { found: 0, critical: 1, recommended: 2, optional: 3 }
+  all.sort((a, b) => ORDER[a.state] - ORDER[b.state])
+
+  const legend = [
+    { state: 'found',       label: 'Present',     color: 'var(--success)' },
+    { state: 'critical',    label: 'Missing (critical)', color: 'var(--danger)' },
+    { state: 'recommended', label: 'Missing (recommended)', color: 'var(--warning)' },
+    { state: 'optional',    label: 'Missing (optional)', color: 'var(--text-secondary)' },
+  ]
+
+  return (
+    <div className="card">
+      <h3 className="section-title">Resume Sections</h3>
+      <div className="heatmap-grid">
+        {all.map(({ name, state }) => (
+          <div key={name} className={`heatmap-pill heatmap-pill--${state}`}>
+            <span className="heatmap-dot" />
+            {name}
+          </div>
+        ))}
+      </div>
+      <div className="heatmap-legend">
+        {legend.map(({ state, label, color }) => {
+          const count = all.filter(s => s.state === state).length
+          if (count === 0) return null
+          return (
+            <span key={state} className="heatmap-legend-item" style={{ color }}>
+              <span className="heatmap-legend-dot" style={{ background: color }} />
+              {label}
+            </span>
+          )
+        })}
+      </div>
+    </div>
+  )
+}
+
 export default function ReportCard({ report, previousEntry }) {
   const { copiedIdx, copy } = useCopy()
   const [showShareCard, setShowShareCard] = useState(false)
@@ -145,6 +197,8 @@ export default function ReportCard({ report, previousEntry }) {
     suggestions,
     resume_word_count,
     jd_word_count,
+    score_explanations,
+    detected_company,
   } = report
 
   const isResumeOnly = mode === 'resume_only'
@@ -168,11 +222,19 @@ export default function ReportCard({ report, previousEntry }) {
         />
       )}
 
-      {/* Mode badge */}
+      {/* Mode badge + JD role/company banner */}
       <div className="mode-badge-row">
         <span className={`mode-badge ${isResumeOnly ? 'mode-badge--ats' : 'mode-badge--jd'}`}>
           {isResumeOnly ? '✅ ATS Check Only' : '📋 ATS vs Job Description'}
         </span>
+        {!isResumeOnly && (detected_jd_title || detected_company) && (
+          <span className="analyzing-for-badge">
+            Analyzing for:{' '}
+            <strong>
+              {[detected_jd_title, detected_company].filter(Boolean).join(' @ ')}
+            </strong>
+          </span>
+        )}
       </div>
 
       {/* 1 — Overall Score Ring */}
@@ -207,12 +269,12 @@ export default function ReportCard({ report, previousEntry }) {
 
         {/* Keyword Match only shown in JD-comparison mode */}
         {!isResumeOnly && (
-          <ProgressBar label="Keyword Match"   score={keyword_match_score}  color="var(--accent)" />
+          <ProgressBar label="Keyword Match"   score={keyword_match_score}  color="var(--accent)"       hint={score_explanations?.keyword_match} />
         )}
 
-        <ProgressBar label="Skills"          score={skills_score}         color="var(--accent-light)" />
-        <ProgressBar label="Experience"      score={experience_score}     color="var(--success)" />
-        <ProgressBar label="Education"       score={education_score}      color="var(--warning)" />
+        <ProgressBar label="Skills"          score={skills_score}         color="var(--accent-light)" hint={score_explanations?.skills} />
+        <ProgressBar label="Experience"      score={experience_score}     color="var(--success)"      hint={score_explanations?.experience} />
+        <ProgressBar label="Education"       score={education_score}      color="var(--warning)"      hint={score_explanations?.education} />
 
         {/* Sections structure only shown in ATS-only mode */}
         {isResumeOnly && sections_score != null && (
@@ -405,37 +467,8 @@ export default function ReportCard({ report, previousEntry }) {
         )}
       </div>
 
-      {/* 5 — Sections found / missing */}
-      <div className="card">
-        <h3 className="section-title">Resume Sections</h3>
-        <div className="sections-grid">
-          <div className="sections-col">
-            <div className="sections-col-title found-title">Found</div>
-            {sections_found.length === 0 ? (
-              <span className="sections-none">None detected</span>
-            ) : (
-              sections_found.map((s) => (
-                <div key={s} className="section-item section-found">
-                  <span className="section-icon">✅</span> {s}
-                </div>
-              ))
-            )}
-          </div>
-
-          <div className="sections-col">
-            <div className="sections-col-title missing-title">Missing</div>
-            {sections_missing.length === 0 ? (
-              <span className="sections-none">All sections present!</span>
-            ) : (
-              sections_missing.map((s) => (
-                <div key={s} className="section-item section-missing">
-                  <span className="section-icon">❌</span> {s}
-                </div>
-              ))
-            )}
-          </div>
-        </div>
-      </div>
+      {/* 5 — Sections heatmap */}
+      <SectionsHeatmap found={sections_found} missing={sections_missing} />
 
       {/* 5b — Section Order Recommendations */}
       {section_order_suggestions?.length > 0 && (

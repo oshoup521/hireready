@@ -44,6 +44,14 @@
     />
   </head>
   <body class="dark">
+    <!-- Runs synchronously before React renders — prevents flash of wrong theme -->
+    <script>
+      (function () {
+        var saved = localStorage.getItem('hireready-theme')
+        var sys = window.matchMedia('(prefers-color-scheme: light)').matches ? 'light' : 'dark'
+        document.body.className = saved || sys
+      })()
+    </script>
     <div id="root"></div>
     <script type="module" src="/src/main.jsx"></script>
   </body>

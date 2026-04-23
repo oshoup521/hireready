@@ -199,10 +199,20 @@
 }
 
 /* ── Actions ── */
+.share-actions {
+  display: flex;
+  gap: 0.6rem;
+}
+
+.share-native-btn,
 .share-download-btn {
-  width: 100%;
+  flex: 1;
   justify-content: center;
   font-size: 0.9rem;
+}
+
+.share-native-btn {
+  background: var(--success);
 }
 
 .share-hint {

@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react'
+import { useState, useEffect, useRef } from 'react'
 import Header from './components/Header.jsx'
 import UploadSection from './components/UploadSection.jsx'
 import ReportCard from './components/ReportCard.jsx'
@@ -29,12 +29,22 @@ export default function App() {
   const [viewerCollapsed, setViewerCollapsed] = useState(
     () => window.matchMedia('(max-width: 900px)').matches
   )
+  // Inline rewrite: { text, seq } — seq increments so same line can be re-sent
+  const rewriteSeq = useRef(0)
+  const [rewriteRequest, setRewriteRequest] = useState(null)
 
-  // On mount — restore saved theme preference
+  function handleRewriteRequest(line) {
+    rewriteSeq.current++
+    setRewriteRequest({ text: line, seq: rewriteSeq.current })
+  }
+
+  // On mount — restore saved theme, or fall back to the OS preference
   useEffect(() => {
-    const saved = localStorage.getItem('hireready-theme') || 'dark'
-    setTheme(saved)
-    document.body.className = saved
+    const saved = localStorage.getItem('hireready-theme')
+    const systemPreferred = window.matchMedia('(prefers-color-scheme: light)').matches ? 'light' : 'dark'
+    const initial = saved || systemPreferred
+    setTheme(initial)
+    document.body.className = initial
   }, [])
 
   // Toggle between dark and light theme
@@ -173,6 +183,7 @@ export default function App() {
                 report={report}
                 collapsed={viewerCollapsed}
                 onToggle={() => setViewerCollapsed(c => !c)}
+                onRewriteRequest={handleRewriteRequest}
               />
             </div>
             <div className="split-right">
@@ -180,7 +191,13 @@ export default function App() {
             </div>
           </div>
           {/* Resume Coach — remounts on each new report so chat history resets */}
-          <CoachChat key={`coach-${reportKey}`} report={report} apiUrl={API_URL} />
+          <CoachChat
+            key={`coach-${reportKey}`}
+            report={report}
+            apiUrl={API_URL}
+            rewriteRequest={rewriteRequest}
+            onRewriteHandled={() => setRewriteRequest(null)}
+          />
           {/* Cover Letter Generator */}
           <CoverLetterGenerator report={report} apiUrl={API_URL} />
         </>

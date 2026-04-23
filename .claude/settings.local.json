@@ -6,7 +6,10 @@
       "Bash(npm run *)",
       "Bash(python -c \"import scorer; print\\('scorer OK'\\)\")",
       "Bash(.venv/Scripts/python -c \"import scorer; print\\('scorer OK'\\)\")",
-      "Bash(.venv/Scripts/python -c \"import main; print\\('main OK'\\)\")"
+      "Bash(.venv/Scripts/python -c \"import main; print\\('main OK'\\)\")",
+      "Bash(npm uninstall *)",
+      "Bash(python -c 'import ast, sys, os *)",
+      "Bash(python -c ' *)"
     ]
   }
 }

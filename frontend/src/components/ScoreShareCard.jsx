@@ -204,6 +204,26 @@ export default function ScoreShareCard({ report, onClose }) {
     link.click()
   }
 
+  // ── Native share (mobile) ─────────────────────────────────────────────
+  async function handleNativeShare() {
+    drawCard()
+    const canvas = canvasRef.current
+    if (!canvas) return
+    canvas.toBlob(async (blob) => {
+      const file = new File([blob], `hireready-score-${overall_score}.png`, { type: 'image/png' })
+      try {
+        await navigator.share({
+          title: `My HireReady ATS Score: ${overall_score}`,
+          text: `I scored ${overall_score}/100 on HireReady! Check your ATS score at hireready.oshoupadhyay.in`,
+          files: [file],
+        })
+      } catch {
+        // User cancelled or share failed — fall back to download silently
+        handleDownload()
+      }
+    }, 'image/png')
+  }
+
   return createPortal(
     <div className="share-overlay" onClick={onClose}>
       <div className="share-modal" onClick={(e) => e.stopPropagation()}>
@@ -277,9 +297,16 @@ export default function ScoreShareCard({ report, onClose }) {
         {/* Hidden canvas used for PNG export */}
         <canvas ref={canvasRef} style={{ display: 'none' }} />
 
-        <button className="btn-primary share-download-btn" onClick={handleDownload} type="button">
-          ⬇ Download as PNG
-        </button>
+        <div className="share-actions">
+          {typeof navigator !== 'undefined' && navigator.canShare && (
+            <button className="btn-primary share-native-btn" onClick={handleNativeShare} type="button">
+              Share
+            </button>
+          )}
+          <button className="btn-primary share-download-btn" onClick={handleDownload} type="button">
+            ⬇ Download PNG
+          </button>
+        </div>
         <p className="share-hint">Or take a screenshot of the card above to share!</p>
       </div>
     </div>,

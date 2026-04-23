@@ -77,16 +77,25 @@ function Seg({ text, type }) {
 }
 
 /** Renders one full text line with optional quantified-line highlight */
-function AnnotatedLine({ line, annotations, quantifiedLines }) {
+function AnnotatedLine({ line, annotations, quantifiedLines, onRewriteRequest }) {
   const segs      = useMemo(() => annotateText(line, annotations), [line, annotations])
   const quantified = useMemo(() => isQuantified(line, quantifiedLines), [line, quantifiedLines])
 
   if (!line.trim()) return <div className="atv-blank-line" />
 
   return (
-    <div className={`atv-line${quantified ? ' atv-line--quantified' : ''}`}>
+    <div className={`atv-line${quantified ? ' atv-line--quantified' : ''}${onRewriteRequest ? ' atv-line--rewritable' : ''}`}>
       {quantified && <span className="atv-quant-badge" title="Quantified achievement">✅</span>}
       {segs.map((s, i) => <Seg key={i} text={s.text} type={s.type} />)}
+      {onRewriteRequest && (
+        <button
+          className="atv-rewrite-btn"
+          onClick={() => onRewriteRequest(line)}
+          type="button"
+          title="AI-rewrite this bullet"
+          aria-label="Rewrite bullet with AI Coach"
+        >✏️</button>
+      )}
     </div>
   )
 }
@@ -110,7 +119,7 @@ function AnnotatedLine({ line, annotations, quantifiedLines }) {
  *   collapsed {boolean}  Whether the panel is collapsed (controlled by parent)
  *   onToggle  {fn}       Called when the user clicks the hide/show button
  */
-export default function ResumeTextViewer({ report, collapsed, onToggle }) {
+export default function ResumeTextViewer({ report, collapsed, onToggle, onRewriteRequest }) {
   const [activeTab, setActiveTab] = useState('resume')
 
   const {
@@ -214,6 +223,7 @@ export default function ResumeTextViewer({ report, collapsed, onToggle }) {
                 line={line}
                 annotations={activeAnnotations}
                 quantifiedLines={activeTab === 'resume' ? quantified_lines : []}
+                onRewriteRequest={activeTab === 'resume' ? onRewriteRequest : null}
               />
             ))
           : <p className="atv-empty">

@@ -6,8 +6,24 @@
 /* Mode badge shown at the top of the report */
 .mode-badge-row {
   display: flex;
+  flex-wrap: wrap;
+  align-items: center;
   justify-content: center;
+  gap: 0.5rem;
   margin-bottom: 1rem;
+}
+
+.analyzing-for-badge {
+  font-size: 0.78rem;
+  color: var(--text-secondary);
+  background: var(--bg-secondary);
+  border: 1px solid var(--border);
+  border-radius: 999px;
+  padding: 0.3rem 0.9rem;
+}
+
+.analyzing-for-badge strong {
+  color: var(--text-primary);
 }
 
 .mode-badge {
@@ -87,24 +103,79 @@
   border-bottom: none;
 }
 
-.section-found {
-  color: var(--text-primary);
+/* ── Section Heatmap ── */
+.heatmap-grid {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+  margin-bottom: 0.75rem;
 }
 
-.section-missing {
-  color: var(--text-secondary);
+.heatmap-pill {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.35rem;
+  font-size: 0.78rem;
+  font-weight: 500;
+  padding: 0.3rem 0.7rem;
+  border-radius: 999px;
+  border: 1px solid transparent;
 }
 
-.section-icon {
-  font-size: 0.8rem;
-  line-height: 1;
+.heatmap-dot {
+  width: 7px;
+  height: 7px;
+  border-radius: 50%;
   flex-shrink: 0;
 }
 
-.sections-none {
-  font-size: 0.8rem;
+.heatmap-pill--found {
+  background: color-mix(in srgb, var(--success) 14%, transparent);
+  border-color: color-mix(in srgb, var(--success) 35%, transparent);
+  color: var(--success);
+}
+.heatmap-pill--found .heatmap-dot { background: var(--success); }
+
+.heatmap-pill--critical {
+  background: color-mix(in srgb, var(--danger) 12%, transparent);
+  border-color: color-mix(in srgb, var(--danger) 30%, transparent);
+  color: var(--danger);
+}
+.heatmap-pill--critical .heatmap-dot { background: var(--danger); }
+
+.heatmap-pill--recommended {
+  background: color-mix(in srgb, var(--warning) 12%, transparent);
+  border-color: color-mix(in srgb, var(--warning) 30%, transparent);
+  color: var(--warning);
+}
+.heatmap-pill--recommended .heatmap-dot { background: var(--warning); }
+
+.heatmap-pill--optional {
+  background: color-mix(in srgb, var(--text-secondary) 8%, transparent);
+  border-color: var(--border);
   color: var(--text-secondary);
-  font-style: italic;
+}
+.heatmap-pill--optional .heatmap-dot { background: var(--text-secondary); }
+
+.heatmap-legend {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.75rem;
+  margin-top: 0.25rem;
+}
+
+.heatmap-legend-item {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.3rem;
+  font-size: 0.7rem;
+}
+
+.heatmap-legend-dot {
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  flex-shrink: 0;
 }
 
 /* Suggestions list */

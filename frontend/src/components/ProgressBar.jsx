@@ -8,7 +8,7 @@ import './ProgressBar.css'
  *   score {number}  0–100
  *   color {string}  CSS color string (e.g., "var(--accent)")
  */
-export default function ProgressBar({ label, score, color }) {
+export default function ProgressBar({ label, score, color, hint }) {
   const fillRef = useRef(null)
 
   // Animate the bar width on mount using requestAnimationFrame
@@ -47,6 +47,8 @@ export default function ProgressBar({ label, score, color }) {
           aria-valuemax={100}
         />
       </div>
+
+      {hint && <p className="progress-hint">{hint}</p>}
     </div>
   )
 }

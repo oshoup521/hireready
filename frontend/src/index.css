@@ -272,12 +272,18 @@ button {
   /* Hide everything except the report card */
   header,
   .upload-section,
+  .upload-centering-wrapper,
   .split-left,
   .download-btn-wrapper,
   .error-message,
   .coach-fab,
   .coach-panel,
-  .coach-hint {
+  .coach-hint,
+  .coach-backdrop,
+  .score-history,
+  .cover-letter-section,
+  .share-score-btn,
+  .analyzing-for-badge {
     display: none !important;
   }
 

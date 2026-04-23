@@ -672,6 +672,111 @@ def detect_job_title_relevance(resume_text: str, jd_text: str) -> dict:
     }
 
 
+def _detect_company_name(jd_text: str) -> str:
+    """
+    Extract the hiring company name from a job description using trigger phrases.
+    Captures 1–4 consecutive Title-Case words; stops at sentence boundaries.
+    Returns empty string if nothing confident is found.
+    """
+    # No period in token so "Google." stops at the dot and doesn't bleed
+    _TITLE_TOKEN = r"[A-Z][A-Za-z0-9&'\-]+"
+    _COMPANY     = rf"({_TITLE_TOKEN}(?:\s+{_TITLE_TOKEN}){{0,3}})"
+
+    patterns = [
+        # Case-insensitive trigger; company name still needs to start with uppercase
+        rf"(?i:at|join|for|with)\s+{_COMPANY}",
+        # "About Us: Stripe" — put "About Us" before "About" so it matches greedily
+        rf"(?i:About\s+Us|About|Company|Who\s+We\s+Are)\s*[:\-]\s*{_COMPANY}",
+        rf"^{_COMPANY}\s+(?i:is)\s+(?:a|an|the)\s+",
+        rf"{_COMPANY}\s+(?i:is)\s+(?i:hiring|looking|seeking)",
+    ]
+    noise = {"we", "our", "the", "this", "a", "an", "you", "team", "role", "position",
+             "looking", "seeking", "hiring", "about", "who", "what", "join", "us"}
+    for pat in patterns:
+        m = re.search(pat, jd_text, re.MULTILINE)
+        if m:
+            name = m.group(1).strip().rstrip(".,;:")
+            if name.lower() not in noise and len(name) >= 2:
+                return name
+    return ""
+
+
+def build_score_explanations(
+    mode: str,
+    keyword_match_score: int,
+    skills_score: int,
+    experience_score: int,
+    education_score: int,
+    matched_keywords: list,
+    missing_keywords: list,
+    jd_skills: set,
+    resume_skills: set,
+    exp_hits: int,
+    quantified_count: int,
+    edu_hits: int,
+) -> dict:
+    """
+    Build plain-English one-line explanations for each sub-score.
+    These are shown as 'why' hints under each score bar in the UI.
+    """
+    explanations = {}
+
+    # Keyword Match (JD mode only)
+    if mode == "ats_vs_jd":
+        matched_sample = ", ".join(list(matched_keywords)[:3])
+        missing_sample = ", ".join(list(missing_keywords)[:3])
+        if matched_keywords:
+            msg = f"Matched {len(matched_keywords)} of {len(matched_keywords) + len(missing_keywords)} JD keywords"
+            if matched_sample:
+                msg += f" (e.g. {matched_sample})"
+            if missing_keywords:
+                msg += f". Missing: {missing_sample}{'…' if len(missing_keywords) > 3 else ''}"
+        else:
+            msg = "No JD keywords found in your resume. Add relevant terms from the job description."
+        explanations["keyword_match"] = msg
+
+    # Skills
+    if mode == "ats_vs_jd" and jd_skills:
+        matched_skills = jd_skills & resume_skills
+        missing_skills = jd_skills - resume_skills
+        ms = ", ".join(list(matched_skills)[:3])
+        mis = ", ".join(list(missing_skills)[:3])
+        msg = f"Matched {len(matched_skills)} of {len(jd_skills)} skills from the JD"
+        if ms:
+            msg += f" (e.g. {ms})"
+        if missing_skills:
+            msg += f". Missing: {mis}{'…' if len(missing_skills) > 3 else ''}"
+    else:
+        rs = ", ".join(list(resume_skills)[:3])
+        if resume_skills:
+            msg = f"Found {len(resume_skills)} recognisable skills in your resume (e.g. {rs})"
+            if skills_score < 60:
+                msg += ". Add more technical/soft skills to improve coverage."
+        else:
+            msg = "No recognisable tech or soft skills detected. Add a dedicated Skills section."
+    explanations["skills"] = msg
+
+    # Experience
+    exp_total = len([k for k in ["years", "experience", "worked", "developed", "managed", "led", "built"] if True])
+    msg = f"Found {exp_hits} experience indicators"
+    if quantified_count > 0:
+        msg += f" with {quantified_count} quantified achievement{'s' if quantified_count != 1 else ''}"
+    else:
+        msg += ". Add numbers/metrics to achievements to boost this score"
+    explanations["experience"] = msg
+
+    # Education
+    if edu_hits >= 3:
+        msg = "Strong education section detected (degree, institution, and qualifiers found)"
+    elif edu_hits >= 1:
+        msg = f"Partial education info found ({edu_hits} keyword{'s' if edu_hits != 1 else ''}). Add degree, university name, and year"
+    else:
+        msg = "No education keywords found. Add your degree, university, and graduation year"
+    explanations["education"] = msg
+
+    return explanations
+
+
 def score_quantification(resume_text: str) -> dict:
     """
     Measure how many achievements in the resume are backed by numbers/metrics.
@@ -1939,6 +2044,25 @@ def score_resume(resume_text: str, jd_text: str, ats_preset: str = None, cover_l
     bullet_density_issues = check_bullet_density(resume_text)
 
     # ------------------------------------------------------------------
+    # Score explanations + company detection
+    # ------------------------------------------------------------------
+    score_explanations = build_score_explanations(
+        mode="ats_vs_jd",
+        keyword_match_score=keyword_match_score,
+        skills_score=skills_score,
+        experience_score=experience_score,
+        education_score=education_score,
+        matched_keywords=matched_keywords,
+        missing_keywords=missing_keywords,
+        jd_skills=jd_skills,
+        resume_skills=resume_skills,
+        exp_hits=exp_hits,
+        quantified_count=len(quant["quantified_lines"]),
+        edu_hits=edu_hits,
+    )
+    detected_company = _detect_company_name(jd_text)
+
+    # ------------------------------------------------------------------
     # Return the complete result dict
     # ------------------------------------------------------------------
     return {
@@ -1950,6 +2074,8 @@ def score_resume(resume_text: str, jd_text: str, ats_preset: str = None, cover_l
         "experience_score": experience_score,
         "education_score": education_score,
         "sections_score": None,
+        "score_explanations": score_explanations,
+        "detected_company": detected_company,
         "formatting_score": fmt["formatting_score"],
         "formatting_issues": fmt["formatting_issues"],
         "grammar_score": gram["grammar_score"],
@@ -2188,6 +2314,24 @@ def score_resume_only(resume_text: str, ats_preset: str = None) -> dict:
     bullet_density_issues = check_bullet_density(resume_text)
 
     # ------------------------------------------------------------------
+    # Score explanations (ATS-only — no JD context)
+    # ------------------------------------------------------------------
+    score_explanations = build_score_explanations(
+        mode="resume_only",
+        keyword_match_score=0,
+        skills_score=skills_score,
+        experience_score=experience_score,
+        education_score=education_score,
+        matched_keywords=[],
+        missing_keywords=[],
+        jd_skills=set(),
+        resume_skills=resume_skills,
+        exp_hits=exp_hits,
+        quantified_count=len(quant["quantified_lines"]),
+        edu_hits=edu_hits,
+    )
+
+    # ------------------------------------------------------------------
     # Return the result dict (compatible with ReportCard schema)
     # ------------------------------------------------------------------
     return {
@@ -2199,6 +2343,8 @@ def score_resume_only(resume_text: str, ats_preset: str = None) -> dict:
         "experience_score": experience_score,
         "education_score": education_score,
         "sections_score": sections_score,
+        "score_explanations": score_explanations,
+        "detected_company": "",
         "formatting_score": fmt["formatting_score"],
         "formatting_issues": fmt["formatting_issues"],
         "grammar_score": gram["grammar_score"],

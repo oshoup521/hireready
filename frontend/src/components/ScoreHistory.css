@@ -184,6 +184,11 @@
   border-color: var(--accent);
 }
 
+.history-export-btn--pdf:hover {
+  color: var(--success);
+  border-color: var(--success);
+}
+
 /* Clear all link */
 .history-clear-btn {
   background: transparent;
@@ -252,9 +257,10 @@
 }
 
 /* Applied entry subtle tint */
-.history-entry--applied {
-  border-color: color-mix(in srgb, var(--success) 40%, transparent);
-}
+.history-entry--applied   { border-color: color-mix(in srgb, var(--accent)  40%, transparent); }
+.history-entry--interview { border-color: color-mix(in srgb, var(--warning) 40%, transparent); }
+.history-entry--offer     { border-color: color-mix(in srgb, var(--success) 40%, transparent); }
+.history-entry--rejected  { border-color: color-mix(in srgb, var(--danger)  40%, transparent); opacity: 0.7; }
 
 /* Crown icon */
 .history-crown {
@@ -271,8 +277,8 @@
   flex-wrap: wrap;
 }
 
-/* Applied tag button */
-.history-applied-tag {
+/* Status tracker pill */
+.history-status-btn {
   background: transparent;
   border: 1px solid var(--border);
   color: var(--text-secondary);
@@ -285,15 +291,40 @@
   white-space: nowrap;
 }
 
-.history-applied-tag:hover {
-  border-color: var(--success);
-  color: var(--success);
+.history-status-btn:hover {
+  border-color: var(--accent);
+  color: var(--accent);
 }
 
-.history-applied-tag--active {
-  background: color-mix(in srgb, var(--success) 12%, transparent);
-  border-color: var(--success);
-  color: var(--success);
+.history-status-btn--applied,
+.history-status-btn--interview,
+.history-status-btn--offer,
+.history-status-btn--rejected {
+  background: color-mix(in srgb, currentColor 10%, transparent);
+}
+
+/* Quick reject button */
+.history-reject-btn {
+  background: transparent;
+  border: 1px solid transparent;
+  color: var(--text-secondary);
+  font-size: 0.7rem;
+  font-weight: 700;
+  width: 18px;
+  height: 18px;
+  border-radius: 50%;
+  cursor: pointer;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  padding: 0;
+  transition: color 0.15s, background 0.15s;
+  flex-shrink: 0;
+}
+
+.history-reject-btn:hover {
+  color: var(--danger);
+  background: color-mix(in srgb, var(--danger) 12%, transparent);
 }
 
 /* ── Confirmation dialog ── */

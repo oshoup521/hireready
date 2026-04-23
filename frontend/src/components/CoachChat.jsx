@@ -34,10 +34,10 @@ const CHIP_PROMPTS = {
   'sections': 'Which resume sections am I missing or under-using? For each, tell me what to put in it.',
   'why-score-ats': 'Explain why my ATS-readiness score is what it is. Focus on section completeness, skills breadth, experience, and education — no JD was uploaded, so skip any keyword-matching discussion.',
   'strengthen-experience': 'Review my experience section. Point out 2-3 specific bullets that are weak (vague, no numbers, passive voice) and rewrite them to be stronger. Show before → after.',
-  'skills-breadth': 'Look at the skills in my resume. Are they broad and current enough for my target roles? Suggest specific skills I should add based on what experienced candidates in my field typically list.',
+  'skills-breadth': 'Based on the role you can infer from my resume (job titles, projects, tech I already use), are my skills broad and current enough for that specific role? First tell me the role you inferred in one line so I can correct you. Then suggest 3–5 adjacent skills I should add — each tied to something concrete in my resume, not a generic industry list. If my target role is genuinely unclear from the resume, ask me before suggesting.',
 }
 
-export default function CoachChat({ report, apiUrl }) {
+export default function CoachChat({ report, apiUrl, rewriteRequest, onRewriteHandled }) {
   const [messages, setMessages] = useState([])
   const [isLoading, setIsLoading] = useState(false)
   const [isOpen, setIsOpen] = useState(false)
@@ -59,14 +59,30 @@ export default function CoachChat({ report, apiUrl }) {
     scrollRef.current?.scrollIntoView({ behavior: 'smooth' })
   }, [messages, isLoading, isOpen])
 
-  // Lock body scroll while the panel is open (prevents background scroll on mobile)
+  // Inline rewrite request — open the panel and auto-send the rewrite prompt
   useEffect(() => {
-    if (isOpen) {
-      document.body.style.overflow = 'hidden'
-    } else {
-      document.body.style.overflow = ''
-    }
-    return () => { document.body.style.overflow = '' }
+    if (!rewriteRequest) return
+    setIsOpen(true)
+    sendMessage(
+      `Please rewrite this resume bullet point to be stronger, more impactful, and better ATS-optimised. Show the original, then the improved version with a brief explanation of what changed:\n\n"${rewriteRequest.text}"`
+    )
+    onRewriteHandled?.()
+  }, [rewriteRequest?.seq])
+
+  // On mobile the drawer covers most of the screen behind a scrim, so we lock
+  // the body to stop touch-scroll from chaining to the page when the user
+  // flicks inside an empty messages list. On desktop the panel is a small
+  // floating popup — locking the body would prevent the user from scrolling
+  // the report behind it when the mouse is outside the panel, which is not
+  // what we want. `overscroll-behavior: contain` on the inner scrollers
+  // keeps a wheel/touch inside the panel from bleeding into the body.
+  useEffect(() => {
+    if (!isOpen) return
+    const isMobile = window.matchMedia('(max-width: 640px)').matches
+    if (!isMobile) return
+    const prev = document.body.style.overflow
+    document.body.style.overflow = 'hidden'
+    return () => { document.body.style.overflow = prev }
   }, [isOpen])
 
   // Escape key closes the panel — standard chat-widget UX
