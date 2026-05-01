@@ -12,12 +12,16 @@ import CoverLetterGenerator from './components/CoverLetterGenerator.jsx'
 // Locally it's empty — Vite's proxy forwards /analyze and /health to :8000.
 const API_URL = import.meta.env.VITE_API_URL || ''
 
+// 'idle' | 'waking' | 'ready' | 'error'
+const BACKEND_STATUS = { IDLE: 'idle', WAKING: 'waking', READY: 'ready', ERROR: 'error' }
+
 export default function App() {
   const [report, setReport] = useState(null)
   const [resumeFile, setResumeFile] = useState(null)
   const [isLoading, setIsLoading] = useState(false)
   const [error, setError] = useState(null)
   const [theme, setTheme] = useState('dark')
+  const [backendStatus, setBackendStatus] = useState(BACKEND_STATUS.IDLE)
   // Incrementing this key forces UploadSection to remount and reset its local state
   const [uploadKey, setUploadKey] = useState(0)
   // Incrementing this key forces the split-layout to remount, replaying the fade-in-up
@@ -45,6 +49,36 @@ export default function App() {
     const initial = saved || systemPreferred
     setTheme(initial)
     document.body.className = initial
+  }, [])
+
+  // On mount — ping /health to wake the Render free-tier backend.
+  // Shows a "waking up" banner after 2 s if the backend hasn't responded yet.
+  useEffect(() => {
+    if (!API_URL) return   // no-op in local dev (Vite proxies directly)
+
+    let wakeTimer = null
+    let cancelled = false
+
+    async function pingHealth() {
+      // Show the banner only after a 2 s delay so it doesn't flash on fast responses
+      wakeTimer = setTimeout(() => {
+        if (!cancelled) setBackendStatus(BACKEND_STATUS.WAKING)
+      }, 2000)
+
+      try {
+        const res = await fetch(`${API_URL}/health`, { signal: AbortSignal.timeout(30000) })
+        if (!cancelled) {
+          setBackendStatus(res.ok ? BACKEND_STATUS.READY : BACKEND_STATUS.ERROR)
+        }
+      } catch {
+        if (!cancelled) setBackendStatus(BACKEND_STATUS.ERROR)
+      } finally {
+        clearTimeout(wakeTimer)
+      }
+    }
+
+    pingHealth()
+    return () => { cancelled = true; clearTimeout(wakeTimer) }
   }, [])
 
   // Toggle between dark and light theme
@@ -112,6 +146,17 @@ export default function App() {
 
   return (
     <>
+      {/* Backend wake-up banner — only shown while the Render free-tier service is cold-starting */}
+      {(backendStatus === BACKEND_STATUS.WAKING || backendStatus === BACKEND_STATUS.ERROR) && (
+        <div className={`backend-banner backend-banner--${backendStatus}`} role="status">
+          {backendStatus === BACKEND_STATUS.WAKING ? (
+            <><span className="backend-banner-spinner" />Backend is waking up on Render — this takes ~30 s on the free tier. Hang tight…</>
+          ) : (
+            <>⚠️ Backend may be unavailable. Uploads might fail — try again in a moment.</>
+          )}
+        </div>
+      )}
+
       {/* Header lives outside app-wrapper so the sticky glass spans the full viewport width */}
       <Header
         theme={theme}

@@ -14,6 +14,7 @@ Routes:
 """
 
 import os
+import time
 import logging
 import traceback
 from typing import List, Optional
@@ -31,6 +32,9 @@ from cover_letter import generate_cover_letter as _gen_cover_letter
 
 logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger("hireready")
+
+# Track when the process started so /health can report uptime
+_START_TIME = time.time()
 
 # Upload size cap — 5 MB per file. Anything bigger is rejected before parsing.
 MAX_UPLOAD_BYTES = 5 * 1024 * 1024
@@ -100,10 +104,14 @@ async def read_upload_capped(file: UploadFile, label: str) -> bytes:
 @app.get("/health")
 async def health_check():
     """
-    Health check endpoint used by Render to verify the service is running.
-    Returns a simple JSON status object.
+    Health check endpoint used by Render and cron-jobs.org keep-alive pings.
+    Returns status, current UTC timestamp, and process uptime in seconds.
     """
-    return {"status": "ok"}
+    return {
+        "status": "ok",
+        "timestamp": int(time.time()),
+        "uptime_seconds": int(time.time() - _START_TIME),
+    }
 
 
 @app.post("/analyze")

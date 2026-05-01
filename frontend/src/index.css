@@ -255,6 +255,58 @@ button {
 }
 
 /* =========================================================
+   Backend wake-up banner
+   ========================================================= */
+.backend-banner {
+  position: fixed;
+  bottom: 1.25rem;
+  left: 50%;
+  transform: translateX(-50%);
+  display: flex;
+  align-items: center;
+  gap: 0.6rem;
+  padding: 0.55rem 1.1rem;
+  border-radius: 2rem;
+  font-size: 0.8rem;
+  font-weight: 500;
+  white-space: nowrap;
+  z-index: 200;
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.35);
+  animation: banner-slide-up 0.3s ease;
+  max-width: calc(100vw - 2rem);
+  white-space: normal;
+  text-align: center;
+}
+
+.backend-banner--waking {
+  background: rgba(240, 165, 0, 0.15);
+  border: 1px solid rgba(240, 165, 0, 0.4);
+  color: var(--warning);
+}
+
+.backend-banner--error {
+  background: rgba(224, 92, 92, 0.15);
+  border: 1px solid rgba(224, 92, 92, 0.4);
+  color: var(--danger);
+}
+
+.backend-banner-spinner {
+  display: inline-block;
+  width: 0.75rem;
+  height: 0.75rem;
+  border: 2px solid currentColor;
+  border-top-color: transparent;
+  border-radius: 50%;
+  animation: spin 0.7s linear infinite;
+  flex-shrink: 0;
+}
+
+@keyframes banner-slide-up {
+  from { opacity: 0; transform: translateX(-50%) translateY(0.5rem); }
+  to   { opacity: 1; transform: translateX(-50%) translateY(0); }
+}
+
+/* =========================================================
    Print styles — only show the report card, force light bg
    ========================================================= */
 @media print {
@@ -278,6 +330,7 @@ button {
 
   /* Hide everything except the report card */
   header,
+  .backend-banner,
   .upload-section,
   .upload-centering-wrapper,
   .split-left,
